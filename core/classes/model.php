@@ -338,7 +338,7 @@ class Model {
      */
     public function count() {
         $result = null;
-        $query = "SELECT COUNT(0) AS total FROM ".$this->get_table(). $this->get_joins(). $this->get_where();
+        $query = "SELECT COUNT(0) AS total FROM ".$this->get_table(). $this->get_joins(). $this->get_where(). $this->get_group_by();
         if( $this->query($query,$this->bind) ) {
             $results = $this->fetch_results();
             return (int)$results[0]->total;
