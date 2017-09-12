@@ -53,6 +53,20 @@ class Config_Loader {
         foreach(glob($config_files) as $file) {
             $this->params[basename($file, ".php")] = require $file;
         }
+        
+        //load environment config
+        if( is_dir(ROOT . DS . 'app' . DS . 'config' . DS . ENVIRONMENT) ) {
+            $config_files = ROOT . DS . 'app' . DS . 'config' . DS . ENVIRONMENT . DS . '*.php';
+            foreach(glob($config_files) as $file) {
+                if( !isset($this->params[basename($file, ".php")]) ) {
+                    $this->params[basename($file, ".php")] = require $file;
+                }
+                else {
+                    $temp = require $file;
+                    $this->params[basename($file, ".php")] = array_merge($this->params[basename($file, ".php")], $temp);
+                }
+            }
+        }
     }
     
     /**
