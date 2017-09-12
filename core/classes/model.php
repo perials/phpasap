@@ -47,6 +47,9 @@ class Model {
     private $password;
 	
 	public static $active_connections = [];
+	
+	private static $common_connection = false;
+	private $connection = false;
 
 	protected $primary_key = [];
     
@@ -66,28 +69,33 @@ class Model {
     private $group_by = array();
     
     public function __construct() {
-        $db_credentials_array = Config::get('database');
-        $this->hostname = $db_credentials_array['hostname'];
-        $this->database = $db_credentials_array['database'];
-        $this->username = $db_credentials_array['username'];
-        $this->password = $db_credentials_array['password'];
-        try {
-            $this->connection = new \PDO('mysql:host='.$this->hostname.';dbname='.$this->database.';charset=utf8', $this->username, $this->password);
-            $this->connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        }
-        catch(PDOException $e) {
-            //FIXME raise exception
-			show_error($e->getMessage());
-            die();
-        }
-		
-		if( Config::get('app.db_profiler') == true ) {
-			$this->query("set profiling_history_size=1000");
-			$this->query("set profiling=1");
+        if( self::$common_connection === false ) {
+			
+			$db_credentials_array = Config::get('database');
+			
+			try {
+				self::$common_connection = new \PDO('mysql:host='.$db_credentials_array['hostname'].';dbname='.$db_credentials_array['database'].';charset=utf8', $db_credentials_array['username'], $db_credentials_array['password']);
+				self::$common_connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+			}
+			catch(PDOException $e) {
+				//FIXME raise exception
+				show_error($e->getMessage());
+				die();
+			}
+			
+			$this->connection = self::$common_connection;
+			
+			if( Config::get('app.debug') == true ) {
+				$this->query("set profiling_history_size=1000");
+				$this->query("set profiling=1");
+			}
+			
 		}
 		
+		if( $this->connection === false )
+		$this->connection = self::$common_connection;
+		
 		self::$active_connections[] = $this;
-				
     }
     
     /*
