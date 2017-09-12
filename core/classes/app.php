@@ -186,6 +186,17 @@ class App {
             echo $response;
         }        
         
+        if( Config::get('app.db_profiler') == true ) {
+            $profiler_array = [];
+            foreach( DB::get_active_connections() as $db_obj ) {
+                $query_array = $db_obj->sel("show profiles",[]);
+                foreach($query_array as $row) {
+                    //$profiler_array[] = ['Query'=>$row->Query, 'Duration'=>$row->Duration];
+                    $profiler_array[] = "<b>Query:</b> ".$row->Query."<br/><b>Duration:</b> ".$row->Duration;
+                }
+            }
+            echo implode("<br/><hr/>", $profiler_array);
+        }
     }
     
     public static function get_instance() {

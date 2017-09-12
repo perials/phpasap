@@ -46,6 +46,8 @@ class Model {
     private $username;
     private $password;
 	
+	public static $active_connections = [];
+
 	protected $primary_key = [];
     
     //this will hold the current table being queried
@@ -78,6 +80,14 @@ class Model {
 			show_error($e->getMessage());
             die();
         }
+		
+		if( Config::get('app.db_profiler') == true ) {
+			$this->query("set profiling_history_size=1000");
+			$this->query("set profiling=1");
+		}
+		
+		self::$active_connections[] = $this;
+				
     }
     
     /*
@@ -93,6 +103,8 @@ class Model {
 		$this->group_by = array();
         $this->where = array();
         $this->bind = array();
+		
+		return $this;
     }
     
     /*
@@ -504,5 +516,9 @@ class Model {
 	
 	public function get_by_id($id) {
 		return $this->table($this->get_table())->where($this->primary_key,"=",$id)->first();
+	}
+	
+	public function get_active_connections() {
+		return self::$active_connections;
 	}
 }
