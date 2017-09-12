@@ -39,11 +39,28 @@ if( !defined('ROOT') ) exit('Cheatin\' huh');
 class View_Handler {
     
     private $markup = '';
+    private $is_json = false;
+    private $json_array = [];
     
     private $shared_variables = [];
     
     public function set($params_array = array()) {
         $this->shared_variables = array_merge($this->shared_variables, $params_array);
+    }
+    
+    public function is_json() {
+        return $this->is_json;
+    }
+    
+    public function json($data) {
+        $this->is_json = true;
+        $this->json_array = $data;
+        return $this;
+    }
+    
+    public function output_json() {
+        header('Content-Type: application/json');
+        echo json_encode($this->json_array);
     }
     
     public function make($file_name,$params_array=array(), $echo=false) {

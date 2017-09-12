@@ -175,6 +175,10 @@ class App {
             $response->redirect_header();
         }
         elseif( $response instanceof View_Handler ) {
+            if( $response->is_json() ) {
+                $response->output_json();
+            }
+			else
             /* For view object we echo the generated markup */
             echo $response->get_markup();
         }
