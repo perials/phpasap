@@ -31,6 +31,9 @@
  * @link	    https://phpasap.com
  */
 
+$env = include 'env.php';
+define('ENVIRONMENT',$env);
+
 date_default_timezone_set('UTC');
 
 /* Directory separator is set up here because separators are different on Linux and Windows operating systems */
