@@ -77,10 +77,10 @@ class Model {
 				self::$common_connection = new \PDO('mysql:host='.$db_credentials_array['hostname'].';dbname='.$db_credentials_array['database'].';charset=utf8', $db_credentials_array['username'], $db_credentials_array['password']);
 				self::$common_connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 			}
-			catch(PDOException $e) {
-				//FIXME raise exception
-				show_error($e->getMessage());
-				die();
+			catch(\PDOException $e) {
+				
+				throw new Pa_Exception("Unable to connect to database.<br/>". $e->getMessage(), 8888);
+				
 			}
 			
 			$this->connection = self::$common_connection;

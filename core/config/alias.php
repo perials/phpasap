@@ -51,15 +51,16 @@ if( !defined('ROOT') ) exit('Cheatin\' huh');
 return [
     
     /* Core classes. Donot modify these */
-    'DB'        => '\core\classes\Model',
-    'Config'    => '\core\classes\Config_Loader',
-    'Cookie'    => '\core\classes\Cookie_Handler',
-    'Session'   => '\core\classes\Session_Handler',
-    'Route'     => '\core\classes\Route_Handler',            
-    'Request'   => '\core\classes\Request_Handler',
-    'View'      => '\core\classes\View_Handler',
-    'Form'      => '\core\classes\Form_Builder',
-    'HTML'      => '\core\classes\Html_Builder',
-    'Validator' => '\core\classes\Validation_Handler',
-    'Mail'      => '\core\classes\Mail_Handler',
+    'DB'                => '\core\classes\Model',
+    'Config'            => '\core\classes\Config_Loader',
+    'Cookie'            => '\core\classes\Cookie_Handler',
+    'Session'           => '\core\classes\Session_Handler',
+    'Route'             => '\core\classes\Route_Handler',            
+    'Request'           => '\core\classes\Request_Handler',
+    'View'              => '\core\classes\View_Handler',
+    'Form'              => '\core\classes\Form_Builder',
+    'HTML'              => '\core\classes\Html_Builder',
+    'Validator'         => '\core\classes\Validation_Handler',
+    'Mail'              => '\core\classes\Mail_Handler',
+    'PA_Exception'      => '\core\classes\PA_Exception',
 ];

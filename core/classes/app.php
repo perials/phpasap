@@ -60,7 +60,16 @@ class App {
         $this->php_version = $this->get_php_version();
         
         //Start the session. Session is required by our core Session_Handler class
-        $this->start_session();        
+        $this->start_session();
+        
+        $this->set_error_handler();
+    }
+    
+    /**
+     * Set our custom error handler
+     */
+    private function set_error_handler() {
+        set_error_handler('pa_error_handler',E_ALL);
     }
     
     protected function get_env() {
@@ -116,6 +125,12 @@ class App {
         return (float)phpversion();
     }
     
+    private function check_php_version_support() {
+        if( $this->php_version < 5.4 ) {
+            throw new Pa_Exception("PHP version not supported", 8888);
+        }
+    }
+    
     /*
      * loads the routes files and checks for a match against current request
      */
@@ -139,63 +154,73 @@ class App {
      * call the controller method using the response received from router
      */
     public function dispatch() {
-        if( empty($this->controller) ) {
-            Route::show_404(View::make(Config::get('app.404','modules/404')));
-        }
         
-        if( $this->controller['is_closure'] ) {
-            //instead of calling the closure directly we use call_user_func_array so we can
-            //pass captured variables if any to the closure
-            $response = call_user_func_array( $this->controller['closure'], $this->controller['params']);
-        }
-        else {
+        try {
             
-            $controller = "app\\controllers\\".$this->controller['controller'];
-                        
-            if( !class_exists($controller) ) {
-                show_error('Class app\\controllers\\'. $this->controller['controller'].' does not exists',true);
+            $this->check_php_version_support();
+        
+            if( empty($this->controller) ) {
+                Route::show_404(View::make(Config::get('app.404','modules/404')));
             }
             
-            global $controller_instance;
-            $controller_instance = new $controller;
-            
-            if( !method_exists( $controller_instance, $this->controller['method'] ) ) {
-                show_error('Controller method doesn\'t exists',true);
+            if( $this->controller['is_closure'] ) {
+                //instead of calling the closure directly we use call_user_func_array so we can
+                //pass captured variables if any to the closure
+                $response = call_user_func_array( $this->controller['closure'], $this->controller['params']);
             }
-            
-            /* call the controller method with passed arguments and capture returned response */
-            $response = call_user_func_array( array( $controller_instance, $this->controller['method']), $this->controller['params'] );
-                        
-        }
-        
-        /* Now handle the response */
-        if( $response instanceof Request_Handler ) {
-            /* If request_handler object then we check if this is a redirect */
-            if( $response->redirect_to )
-            $response->redirect_header();
-        }
-        elseif( $response instanceof View_Handler ) {
-            if( $response->is_json() ) {
-                $response->output_json();
-            }
-			else
-            /* For view object we echo the generated markup */
-            echo $response->get_markup();
-        }
-        elseif( is_string($response) ) {
-            echo $response;
-        }        
-        
-        if( Config::get('app.db_profiler') == true ) {
-            $profiler_array = [];
-            foreach( DB::get_active_connections() as $db_obj ) {
-                $query_array = $db_obj->sel("show profiles",[]);
-                foreach($query_array as $row) {
-                    //$profiler_array[] = ['Query'=>$row->Query, 'Duration'=>$row->Duration];
-                    $profiler_array[] = "<b>Query:</b> ".$row->Query."<br/><b>Duration:</b> ".$row->Duration;
+            else {
+                
+                $controller = "app\\controllers\\".$this->controller['controller'];
+                            
+                if( !class_exists($controller) ) {
+                    show_error('Class app\\controllers\\'. $this->controller['controller'].' does not exists',true);
                 }
+                
+                global $controller_instance;
+                $controller_instance = new $controller;
+                
+                if( !method_exists( $controller_instance, $this->controller['method'] ) ) {
+                    show_error('Controller method doesn\'t exists',true);
+                }
+                
+                /* call the controller method with passed arguments and capture returned response */
+                $response = call_user_func_array( array( $controller_instance, $this->controller['method']), $this->controller['params'] );
+                            
             }
-            echo implode("<br/><hr/>", $profiler_array);
+            
+            /* Now handle the response */
+            if( $response instanceof Request_Handler ) {
+                /* If request_handler object then we check if this is a redirect */
+                if( $response->redirect_to )
+                $response->redirect_header();
+            }
+            elseif( $response instanceof View_Handler ) {
+                if( $response->is_json() ) {
+                    $response->output_json();
+                }
+                else
+                /* For view object we echo the generated markup */
+                echo $response->get_markup();
+            }
+            elseif( is_string($response) ) {
+                echo $response;
+            }        
+            
+            if( Config::get('app.db_profiler') == true ) {
+                $profiler_array = [];
+                foreach( DB::get_active_connections() as $db_obj ) {
+                    $query_array = $db_obj->sel("show profiles",[]);
+                    foreach($query_array as $row) {
+                        //$profiler_array[] = ['Query'=>$row->Query, 'Duration'=>$row->Duration];
+                        $profiler_array[] = "<b>Query:</b> ".$row->Query."<br/><b>Duration:</b> ".$row->Duration;
+                    }
+                }
+                echo implode("<br/><hr/>", $profiler_array);
+            }
+        }
+        catch( Pa_Exception $e ) {
+            echo $e->errorMessage();
+            die;
         }
     }
     

@@ -65,9 +65,44 @@ function generate_random_string($length=20) {
  * @return void
  */
 function show_error($error_msg, $truncate_script=false) {
-    echo "<p style='background-color: #f7f7f7; color: #EF6767; padding: 13px; border-left: 4px solid #EF6767; border-bottom: 1px solid #ddd;'>$error_msg</p>";
+    echo "<div style='background-color: #fff; color: #EF6767; padding: 13px; border: 1px solid #eee; border-left: 4px solid #EF6767; font-family: Consolas, monaco, monospace; font-size: 14px; margin-bottom:15px;'>$error_msg</div>";
     
     if($truncate_script) die;
+}
+
+function pa_error_handler($number, $string, $file, $line, $context) {
+	$message = "<strong>$string</strong><br/>
+    File: $file <br/>
+    Line: $line <br/>
+    Level: ".error_level_to_string($number);
+    show_error($message);
+}
+
+function error_level_to_string($intval, $separator = ',') {
+    $error_levels = array(
+        E_ALL => 'E_ALL',
+        E_USER_DEPRECATED => 'E_USER_DEPRECATED',
+        E_DEPRECATED => 'E_DEPRECATED',
+        E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
+        E_STRICT => 'E_STRICT',
+        E_USER_NOTICE => 'E_USER_NOTICE',
+        E_USER_WARNING => 'E_USER_WARNING',
+        E_USER_ERROR => 'E_USER_ERROR',
+        E_COMPILE_WARNING => 'E_COMPILE_WARNING',
+        E_COMPILE_ERROR => 'E_COMPILE_ERROR',
+        E_CORE_WARNING => 'E_CORE_WARNING',
+        E_CORE_ERROR => 'E_CORE_ERROR',
+        E_NOTICE => 'E_NOTICE',
+        E_PARSE => 'E_PARSE',
+        E_WARNING => 'E_WARNING',
+        E_ERROR => 'E_ERROR');
+    $result = '';
+    foreach($error_levels as $number => $name)
+    {
+        if (($intval & $number) == $number) {
+            $result .= ($result != '' ? $separator : '').$name; }
+    }
+    return $result;
 }
 
 /**
