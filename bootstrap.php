@@ -31,8 +31,19 @@
  * @link	    https://phpasap.com
  */
 
+$env = include 'env.php';
+define('ENVIRONMENT',$env);
+
+date_default_timezone_set('UTC');
+
+/* Directory separator is set up here because separators are different on Linux and Windows operating systems */
+define('DS', DIRECTORY_SEPARATOR);
+
+/* constant ROOT will contain the path to base dir and will be used for including other files */
+define('ROOT', dirname(__FILE__));
+
 //Deny direct access
-if( !defined('ROOT') ) exit('Cheatin\' huh');
+//if( !defined('ROOT') ) exit('Cheatin\' huh');
 
 /* This contains the directories where autoloader will search into when a class is found */
 $directories_to_autoload_classes = [
@@ -102,7 +113,7 @@ function autoload_files($class_name) {
         
         return;        
     }
-    elseif( file_exists( strtolower(str_replace(["/","\\"], DS, $class_name).'.php') ) ) {
+    elseif( file_exists( strtolower(str_replace(["/","\\"], DS, ROOT . DS . $class_name).'.php') ) ) {
         require strtolower(str_replace(["/","\\"], DS, $class_name).'.php');
     }
 }

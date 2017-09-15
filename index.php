@@ -31,19 +31,8 @@
  * @link	    https://phpasap.com
  */
 
-$env = include 'env.php';
-define('ENVIRONMENT',$env);
-
-date_default_timezone_set('UTC');
-
-/* Directory separator is set up here because separators are different on Linux and Windows operating systems */
-define('DS', DIRECTORY_SEPARATOR);
-
-/* constant ROOT will contain the path to base dir and will be used for including other files */
-define('ROOT', dirname(__FILE__));
-
 /* We now register our autoloader and include all the required files */
-require ROOT . DS . 'bootstrap.php';
+require 'bootstrap.php';
 
 $controller_instance = false;
 
