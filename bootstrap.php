@@ -68,7 +68,9 @@ foreach ($directories_to_include_files as $dir) {
 }
 
 /* load the alias array */
-$alias = (include ROOT . DS . 'core' . DS . 'config' . DS . 'alias.php');
+$GLOBALS['alias'] = (include ROOT . DS . 'core' . DS . 'config' . DS . 'alias.php');
+
+
 
 /* include the alias loader */
 include ROOT . DS . 'core' . DS . 'classes' . DS . 'alias_loader.php';
@@ -77,7 +79,7 @@ include ROOT . DS . 'core' . DS . 'classes' . DS . 'alias_loader.php';
 spl_autoload_register('autoload_files');
 function autoload_files($class_name) {
     
-    global $alias;
+    $alias = $GLOBALS['alias'];
     
     $namespaced_dir_array = explode(DS, str_replace(['/','\\'], DS, $class_name));
     $class_name_without_ns = end($namespaced_dir_array);
