@@ -120,10 +120,18 @@ class Model {
      * @return current object
      */
     public function table($table_name) {
-        $this->reset();
-        $this->table = $table_name;
-        return $this;
+        $instance = $this->get_instance();
+		$instance->set_table($table_name);
+		return $instance;
     }
+	
+	public function set_table($table_name) {
+		$this->table = $table_name;
+	}
+	
+	public function get_instance() {
+		return new self();
+	}
     
     /*
      * get the current table to be queried
