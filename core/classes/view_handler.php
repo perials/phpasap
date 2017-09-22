@@ -64,6 +64,8 @@ class View_Handler {
     }
     
     public function make($file_name,$params_array=array(), $echo=false) {
+        $params_array = array_merge($this->shared_variables, $params_array);
+        
         $this->markup = $this->render($file_name,$params_array);
         if( $echo == true ) {
             echo $this->get_markup();
