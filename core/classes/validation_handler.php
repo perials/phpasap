@@ -39,7 +39,7 @@ if( !defined('ROOT') ) exit('Cheatin\' huh');
 class Validation_Handler {
 
     /*
-     * @errors array
+     * the error message array which will be set when validation fails
      */
     protected $errors = array();
 
@@ -49,7 +49,7 @@ class Validation_Handler {
     protected $validation_rules = array();
     
     /*
-     * field names to be displayed on validation error
+     * pretty field names to be displayed on validation error
      */
     protected $alt_field_labels = array();
     
@@ -60,7 +60,15 @@ class Validation_Handler {
      */
     private $source = array();
     
+    public function reset() {
+		$this->errors = [];
+		$this->validation_rules = [];
+		$this->alt_field_labels = [];
+		$this->caller_obj = false;
+	}
+    
     public function validate($source, $rules_array, $caller_obj=false) {
+        $this->reset();
         $this->add_source($source);
         $this->add_rules($rules_array);
         $this->caller_obj = $caller_obj;
@@ -92,7 +100,7 @@ class Validation_Handler {
      * add source
      * @param array $source
      */
-    public function add_source($source, $trim=false) {
+    public function add_source($source) {
         $this->source = $source;
     }
 
@@ -232,73 +240,31 @@ class Validation_Handler {
             $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is not set';
             return false;
         }
-        else
-            return true;
+        return true;
     }
 
-    /**
-     *
-     * @validate an ipv4 IP address
-     *
-     * @access private
-     *
-     * @param string $var The variable name
-     *
-     * @param bool $required
-     *
-     */
-    private function validate_ip_v4($var)
-    {
-        if(filter_var($this->source[$var], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === FALSE) {
-            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is not a valid IPv4';
-        }
-    }
-
-    /**
-     *
-     * @validate an ipv6 IP address
-     *
-     * @access private
-     *
-     * @param string $var The variable name
-     *
-     * @param bool $required
-     *
-     */
-    public function validate_ip_v6($var)
-    {
-        if(filter_var($this->source[$var], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) === FALSE) {
-            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is not a valid IPv6';
-        }
-    }
-
-    /**
-     *
-     * @validate a floating point number
-     *
-     * @access private
-     *
-     * @param $var The variable name
-     *
-     * @param bool $required
-     */
-    private function validate_float($var)
-    {
+    private function validate_float($var) {
         if(filter_var($this->source[$var], FILTER_VALIDATE_FLOAT) === false) {
             $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is an invalid float';
+            return false;
         }
+        return true;
     }
     
     private function validate_max($var, $max) {
         if( strlen($this->source[$var]) > $max) {
             $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is too long';
+            return false;
         }
+        return true;
     }
     
     private function validate_min($var, $min) {
         if( strlen($this->source[$var]) < $min) {
             $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is too short';
+            return false;
         }
+        return true;
     }
 
     /**
@@ -319,20 +285,26 @@ class Validation_Handler {
     private function validate_string($var)
     {
         if(!is_string($this->source[$var])) {
-                $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is invalid';
+            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is invalid';
+            return false;    
         }
+        return true;
     }
 
     private function validate_natural($var) {
         if( filter_var( $this->source[$var], FILTER_VALIDATE_INT, array('options' => array('min_range' => 1))) === FALSE) {
             $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is an invalid number';
+            return false;
         }
+        return true;
     }
     
     private function validate_numeric($var) {
         if( !is_numeric( $this->source[$var] )) {
             $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is an invalid number';
+            return false;
         }
+        return true;
     }
 
     /**
@@ -350,7 +322,9 @@ class Validation_Handler {
     {
         if(filter_var($this->source[$var], FILTER_VALIDATE_URL) === FALSE) {
             $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is not a valid URL';
+            return false;
         }
+        return true;
     }
 
 
@@ -360,7 +334,9 @@ class Validation_Handler {
     private function validate_email($var) {
         if(filter_var($this->source[$var], FILTER_VALIDATE_EMAIL) === FALSE) {
             $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is not a valid email address';
+            return false;
         }
+        return true;
     }
 
 
@@ -377,7 +353,9 @@ class Validation_Handler {
     private function validate_bool($var) {
         if( filter_var($this->source[$var], FILTER_VALIDATE_BOOLEAN) === FALSE) {
             $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is Invalid';
+            return false;
         }
+        return true;
     }
 
 }
