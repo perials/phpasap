@@ -196,7 +196,7 @@ class Validation_Handler {
             
             $t_rules_array = explode('|', $rules_string);
             foreach( $t_rules_array as $rule ) {                
-                $rule = explode(':', $rule);
+                $rule = explode(':', $rule, 2);
                 
                 if(isset($rule[1])) {
                     $t_rule = $rule;
@@ -213,12 +213,6 @@ class Validation_Handler {
         $this->validation_rules = $rules_array;
     }
 
-    /**
-     * Checks if variable is set
-     *
-     * @param string $var The HTTP variable to check
-     *
-     */
     private function not_empty($var) {
         if(empty($this->source[$var]))
         {
@@ -229,12 +223,6 @@ class Validation_Handler {
             return true;
     }
 
-    /**
-     * Checks if variable is set
-     *
-     * @param string $var The HTTP variable to check
-     *
-     */
     private function is_set($var) {
         if(!isset($this->source[$var])) {
             $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is not set';
@@ -242,10 +230,10 @@ class Validation_Handler {
         }
         return true;
     }
-
-    private function validate_float($var) {
-        if(filter_var($this->source[$var], FILTER_VALIDATE_FLOAT) === false) {
-            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is an invalid float';
+	
+	private function validate_email($var) {
+        if(filter_var($this->source[$var], FILTER_VALIDATE_EMAIL) === FALSE) {
+            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is an invalid email address';
             return false;
         }
         return true;
@@ -266,90 +254,63 @@ class Validation_Handler {
         }
         return true;
     }
-
-    /**
-     *
-     * @validate a string
-     *
-     * @access private
-     *
-     * @param string $var The variable name
-     *
-     * @param int $min the minimum string length
-     *
-     * @param int $max The maximum string length
-     *
-     * @param bool $required
-     *
-     */
-    private function validate_string($var)
-    {
-        if(!is_string($this->source[$var])) {
-            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is invalid';
-            return false;    
-        }
-        return true;
-    }
-
-    private function validate_natural($var) {
-        if( filter_var( $this->source[$var], FILTER_VALIDATE_INT, array('options' => array('min_range' => 1))) === FALSE) {
-            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is an invalid number';
-            return false;
-        }
-        return true;
-    }
-    
-    private function validate_numeric($var) {
+	
+	private function validate_regex($var, $regex) {
+		if (!preg_match($regex, $this->source[$var])) {
+			$this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is invalid';
+			return false;
+		}
+		return true;
+	}
+	
+	private function validate_numeric($var) {
         if( !is_numeric( $this->source[$var] )) {
             $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is an invalid number';
             return false;
         }
         return true;
     }
+	
+	private function validate_alnum($var) {
+        if( !ctype_alnum( $this->source[$var] )) {
+            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is not alphanumeric';
+            return false;
+        }
+        return true;
+    }
+	
+	private function validate_natural($var) {
+        if( filter_var( $this->source[$var], FILTER_VALIDATE_INT, array('options' => array('min_range' => 1))) === FALSE) {
+            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is an invalid natural number';
+            return false;
+        }
+        return true;
+    }
 
-    /**
-     *
-     * @validate a url
-     *
-     * @access private
-     *
-      * @param string $var The variable name
-     *
-     * @param bool $required
-     *
-     */
-    private function validate_url($var)
-    {
+	private function validate_float($var) {
+        if( !is_float($this->source[$var]) ) {
+            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is an invalid float';
+            return false;
+        }
+        return true;
+    }
+    
+	private function validate_url($var) {
         if(filter_var($this->source[$var], FILTER_VALIDATE_URL) === FALSE) {
-            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is not a valid URL';
+            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is an invalid URL';
             return false;
         }
         return true;
     }
-
-
-    /*
-     * validate an email address
-     */
-    private function validate_email($var) {
-        if(filter_var($this->source[$var], FILTER_VALIDATE_EMAIL) === FALSE) {
-            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is not a valid email address';
-            return false;
+		
+	private function validate_string($var) {
+        if(!is_string($this->source[$var])) {
+            $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is an invalid string';
+            return false;    
         }
         return true;
     }
 
-
-    /**
-     * @validate a boolean 
-     *
-     * @access private
-     *
-     * @param string $var the variable name
-     *
-     * @param bool $required
-     *
-     */
     private function validate_bool($var) {
         if( filter_var($this->source[$var], FILTER_VALIDATE_BOOLEAN) === FALSE) {
             $this->errors[$var] = (isset($this->alt_field_labels[$var]) ? $this->alt_field_labels[$var] : $var) . ' is Invalid';
