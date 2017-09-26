@@ -115,7 +115,7 @@ function autoload_files($class_name) {
         
         return;        
     }
-    elseif( file_exists( strtolower(str_replace(["/","\\"], DS, ROOT . DS . $class_name).'.php') ) ) {
+    elseif( is_readable( strtolower(str_replace(["/","\\"], DS, ROOT . DS . $class_name).'.php') ) ) {
         require strtolower(str_replace(["/","\\"], DS, $class_name).'.php');
     }
 }
