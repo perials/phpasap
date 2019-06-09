@@ -41,6 +41,10 @@
 
 namespace core\classes;
 
+use core\alias\Config;
+use core\alias\Route;
+use core\alias\View;
+
 //Deny direct access
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 
@@ -176,7 +180,6 @@ class App {
                     show_error('Class app\\controllers\\'. $this->controller['controller'].' does not exists',true);
                 }
                 
-                global $controller_instance;
                 $controller_instance = new $controller;
                 
                 if( !method_exists( $controller_instance, $this->controller['method'] ) ) {

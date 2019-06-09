@@ -34,8 +34,6 @@
 /* We now register our autoloader and include all the required files */
 require 'bootstrap.php';
 
-$controller_instance = false;
-
 /* Create new app instance */
 $app = core\classes\App::get_instance();
 

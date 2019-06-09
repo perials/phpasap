@@ -31,29 +31,11 @@
  * @link	    https://phpasap.com
  */
 
-namespace core\classes; 
+namespace core\alias;
 
-//Deny direct access
-if( !defined('ROOT') ) exit('Cheatin\' huh');
+use core\classes\Alias_Loader;
 
-class Alias_Loader {    
-    /**
-     * This will contain all the instances of the classes that are aliased
-     */
-    public static $instances = [];
-    
-    /**
-     * magic method callback when non existent static method is called
-     * 
-     * @param string $method: the method which is called
-     * @param array $args: the arguments passed to the method
-     */
-    public static function __callStatic($method,$args) {
-        if( !isset( self::$instances[static::$key] ) ) {
-            $class_name = static::$class_to_alias;
-            self::$instances[static::$key] = new $class_name;
-        }
-
-        return call_user_func_array([ self::$instances[static::$key], $method ], $args);
-    }
+class Config extends Alias_Loader {
+    protected static $key = 'config';
+    protected static $class_to_alias = '\core\classes\Config_Loader';
 }

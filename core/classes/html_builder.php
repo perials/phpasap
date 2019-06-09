@@ -33,6 +33,8 @@
 
 namespace core\classes;
 
+use core\alias\Route;
+
 //Deny direct access
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 
@@ -42,7 +44,7 @@ class Html_Builder {
      * creates the stylesheet link
      *
      * creates a stylesheet link using the relative path provided
-     * if the provided path is starts with http:// or https:// or second param
+     * if the provided path starts with http:// or https:// or second param
      * is false then it is assumed that the provided path is not relative but absolute
      * and is used as it is
      *
