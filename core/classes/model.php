@@ -33,6 +33,8 @@
 
 namespace core\classes;
 
+use core\alias\Config;
+
 //Deny direct access
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 

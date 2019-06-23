@@ -33,6 +33,9 @@
 
 namespace core\classes;
 
+use core\alias\Route;
+use core\alias\Session;
+
 //Deny direct access
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 
