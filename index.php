@@ -34,8 +34,34 @@
 /* We now register our autoloader and include all the required files */
 require 'bootstrap.php';
 
+use core\classes\View_Hander;
+use core\alias\Request;
+use core\alias\Validator;
+use core\alias\Session;
+use core\alias\Db;
+
 /* Create new app instance */
 $app = core\classes\App::get_instance();
+
+$app->register('view', function() {
+    return new core\classes\View_Hander();
+});
+
+$app->register('request', function() {
+    return new core\classes\Request_Hander();
+});
+
+$app->register('validator', function() {
+    return new core\classes\Validation_Hander();
+});
+
+$app->register('session', function() {
+    return new core\classes\Session_Handler();
+});
+
+$app->register('db', function() {
+    return new core\classes\Model();
+});
 
 /* Map the current request with routing array and capture is any match occurs */
 $app->map();

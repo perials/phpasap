@@ -55,6 +55,8 @@ class App {
      */
     private static $instance = null;
     
+    private $lazy_load_properties = [];
+    
     public function __construct() {
        
         //Conditionally sets debug mode 
@@ -67,6 +69,17 @@ class App {
         $this->start_session();
         
         $this->set_error_handler();
+    }
+    
+    public function register($key, $closure_callback) {
+        $this->lazy_load_properties[$key] = $closure_callback;
+    }
+    
+    public function __get($property) {
+        if (isset($this->lazy_load_properties[$property])) {
+            $this->{$property} = $this->lazy_load_properties[$property]();
+            return $this->{$property};
+        }
     }
     
     /**
@@ -180,7 +193,7 @@ class App {
                     show_error('Class app\\controllers\\'. $this->controller['controller'].' does not exists',true);
                 }
                 
-                $controller_instance = new $controller;
+                $controller_instance = new $controller($this);
                 
                 if( !method_exists( $controller_instance, $this->controller['method'] ) ) {
                     show_error('Controller method doesn\'t exists',true);

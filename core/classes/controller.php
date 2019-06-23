@@ -40,4 +40,7 @@ namespace core\classes;
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 
 class Controller {
+    public function __construct($app) {
+        $this->app = $app;
+    }
 }
