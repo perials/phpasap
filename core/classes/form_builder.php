@@ -40,7 +40,7 @@ if( !defined('ROOT') ) exit('Cheatin\' huh');
 
 class Form_Builder {
     
-    public function text($name=null, $default=null, $attr_assoc_array=array()) {
+    public function input($name=null, $default=null, $attr_assoc_array=array()) {
         if($default===null) {
             if( Session::get($name) )
             $default = Session::get($name);

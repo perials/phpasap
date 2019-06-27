@@ -37,6 +37,11 @@ namespace core\classes;
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 
 class View_Handler {
+    use Loader;
+    
+    public function __construct($app) {
+        $this->app = $app;
+    }
     
     private $markup = '';
     private $is_json = false;

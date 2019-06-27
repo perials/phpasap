@@ -34,33 +34,37 @@
 /* We now register our autoloader and include all the required files */
 require 'bootstrap.php';
 
-use core\classes\View_Hander;
-use core\alias\Request;
-use core\alias\Validator;
-use core\alias\Session;
-use core\alias\Db;
+//use core\classes\View_Hander;
+//use core\alias\Request;
+//use core\alias\Validator;
+//use core\alias\Session;
+//use core\alias\Db;
 
 /* Create new app instance */
 $app = core\classes\App::get_instance();
 
-$app->register('view', function() {
-    return new core\classes\View_Hander();
+$app->register('view', function($app) {
+    return new core\classes\View_Handler($app);
 });
 
-$app->register('request', function() {
-    return new core\classes\Request_Hander();
+$app->register('request', function($app) {
+    return new core\classes\Request_Handler($app);
 });
 
-$app->register('validator', function() {
-    return new core\classes\Validation_Hander();
+$app->register('validator', function($app) {
+    return new core\classes\Validation_Handler($app);
 });
 
-$app->register('session', function() {
-    return new core\classes\Session_Handler();
+$app->register('session', function($app) {
+    return new core\classes\Session_Handler($app);
 });
 
-$app->register('db', function() {
-    return new core\classes\Model();
+$app->register('form', function($app) {
+    return new core\classes\Form_Builder($app);
+});
+
+$app->register('db', function($app) {
+    return new core\classes\Model($app);
 });
 
 /* Map the current request with routing array and capture is any match occurs */

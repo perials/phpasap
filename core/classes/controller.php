@@ -40,7 +40,20 @@ namespace core\classes;
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 
 class Controller {
+    use Loader;
+    // these are the properties to be lazy loaded from app
+    //private $app_properties = ['view', 'request', 'validator', 'session', 'db'];
+    
     public function __construct($app) {
         $this->app = $app;
     }
+    
+    //public function __get($property) {
+    //    echo "Call to unknow prerty " . $property;
+    //    if (in_array($property, $this->app_properties)) {
+    //        $this->{$property} = &$this->app->{$property};
+    //        return $this->{$property};
+    //    }
+    //    return null;
+    //}
 }

@@ -77,9 +77,10 @@ class App {
     
     public function __get($property) {
         if (isset($this->lazy_load_properties[$property])) {
-            $this->{$property} = $this->lazy_load_properties[$property]();
+            $this->{$property} = $this->lazy_load_properties[$property]($this);
             return $this->{$property};
         }
+        return null;
     }
     
     /**
