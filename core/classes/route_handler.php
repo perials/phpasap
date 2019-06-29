@@ -123,6 +123,7 @@ class Route_Handler {
     }
 	
 	public function dispatch() {
+		$route_callback_array = []; // This will hold list of matching routes
 		$request_uri_array = $this->get_request_uri_array();
 		foreach( $this->routes_array as $route_array ) {
 			
@@ -172,10 +173,12 @@ class Route_Handler {
 				}
 			}
 						
-			return $this->get_route_callback($route_array,$variables);
+			// return $this->get_route_callback($route_array,$variables);
+			$route_callback_array[] = $this->get_route_callback($route_array,$variables);
 			
 		}
-		return [];
+		return $route_callback_array;
+		// return [];
 	}
 	
 	public function get_route_callback($route_array,$variables) {

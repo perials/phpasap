@@ -33,12 +33,13 @@
 
 namespace core\classes;
 
-use core\alias\Config;
-
 //Deny direct access
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 
+// Swoole\Runtime::enableCoroutine();
+
 class Model {
+    use Loader;
     
 	public $debug = true;
     
@@ -70,10 +71,11 @@ class Model {
     private $order_by = array();
     private $group_by = array();
     
-    public function __construct() {
+    public function __construct($app) {
+        $this->app = $app;
         if( self::$common_connection === false ) {
 			
-			$db_credentials_array = Config::get('database');
+			$db_credentials_array = $this->config->get('database');
 			
 			try {
 				self::$common_connection = new \PDO('mysql:host='.$db_credentials_array['hostname'].';dbname='.$db_credentials_array['database'].';charset=utf8', $db_credentials_array['username'], $db_credentials_array['password']);
@@ -87,7 +89,7 @@ class Model {
 			
 			$this->connection = self::$common_connection;
 			
-			if( Config::get('app.debug') == true ) {
+			if( $this->config->get('app.debug') == true ) {
 				$this->query("set profiling_history_size=1000");
 				$this->query("set profiling=1");
 			}
@@ -132,7 +134,7 @@ class Model {
 	}
 	
 	public function get_instance() {
-		return new self();
+		return new self($this->app);
 	}
     
     /*

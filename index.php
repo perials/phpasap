@@ -31,43 +31,19 @@
  * @link	    https://phpasap.com
  */
 
+use core\classes\App;
+
 /* We now register our autoloader and include all the required files */
 require 'bootstrap.php';
 
-//use core\classes\View_Hander;
-//use core\alias\Request;
-//use core\alias\Validator;
-//use core\alias\Session;
-//use core\alias\Db;
+App::get('/', 'Welcome_Controller@index');
+App::controller('crud', 'Crud_Controller');
+App::controller('todo', 'Todo_Controller');
 
 /* Create new app instance */
-$app = core\classes\App::get_instance();
+$app = App::get_instance();
 
-$app->register('view', function($app) {
-    return new core\classes\View_Handler($app);
-});
-
-$app->register('request', function($app) {
-    return new core\classes\Request_Handler($app);
-});
-
-$app->register('validator', function($app) {
-    return new core\classes\Validation_Handler($app);
-});
-
-$app->register('session', function($app) {
-    return new core\classes\Session_Handler($app);
-});
-
-$app->register('form', function($app) {
-    return new core\classes\Form_Builder($app);
-});
-
-$app->register('db', function($app) {
-    return new core\classes\Model($app);
-});
-
-/* Map the current request with routing array and capture is any match occurs */
+/* Map the current request with routing array and capture if any match occurs */
 $app->map();
 
 /* If match occurs the appropriate controller method will be called with passed arguments */

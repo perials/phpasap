@@ -41,9 +41,9 @@
 
 namespace core\classes;
 
-use core\alias\Config;
-use core\alias\Route;
-use core\alias\View;
+// use core\alias\Config;
+// use core\alias\Route;
+// use core\alias\View;
 
 //Deny direct access
 if( !defined('ROOT') ) exit('Cheatin\' huh');
@@ -54,8 +54,11 @@ class App {
      * for singleton use
      */
     private static $instance = null;
+
+    private $route_index = 0; // current middleware index to run
     
-    private $lazy_load_properties = [];
+    public static $lazy_load_properties = [];
+    public static $route_array = [];
     
     public function __construct() {
        
@@ -71,13 +74,13 @@ class App {
         $this->set_error_handler();
     }
     
-    public function register($key, $closure_callback) {
-        $this->lazy_load_properties[$key] = $closure_callback;
+    public static function register($key, $closure_callback) {
+        self::$lazy_load_properties[$key] = $closure_callback;
     }
     
     public function __get($property) {
-        if (isset($this->lazy_load_properties[$property])) {
-            $this->{$property} = $this->lazy_load_properties[$property]($this);
+        if (isset(self::$lazy_load_properties[$property])) {
+            $this->{$property} = self::$lazy_load_properties[$property]($this);
             return $this->{$property};
         }
         return null;
@@ -100,7 +103,7 @@ class App {
     private function debug_mode() {
         
         //Check if debug variable set in app.php config file
-        if( Config::get('app.debug') === true ) {            
+        if( $this->config->get('app.debug') === true ) {
             //Set error reporting to true
             error_reporting(E_ALL);
             ini_set('display_errors', 1);            
@@ -148,13 +151,28 @@ class App {
             throw new Pa_Exception("PHP version not supported", 8888);
         }
     }
+
+    public static function get($url, $callback) {
+        self::$route_array[] = ['GET', $url, $callback];
+        // $this->route->add('GET', $url, $callback);
+    }
+
+    public static function controller($url, $callback) {
+        self::$route_array[] = ['CONTROLLER', $url, $callback];
+        // $this->route->add('CONTROLLER', $url, $callback);
+    }
     
     /*
      * loads the routes files and checks for a match against current request
      */
     public function map() {
-        $this->load('app\routes.php');
-        $this->controller = Route::dispatch();
+        // $this->load('app\routes.php');
+        // $this->controller = $this->route->dispatch();
+        foreach(self::$route_array as $route_array) {
+            $this->route->add($route_array[0], $route_array[1], $route_array[2]);
+        }
+
+        $this->controller_array = $this->route->dispatch();
     }
     
     /*
@@ -164,22 +182,28 @@ class App {
      * @param string $file_path path of the file relative to project root
      * Eg App::load('controller/home.php')
      */
-    public function load($file_path) {
-        include ROOT . DS . str_replace(['\\','/'], DS, $file_path );
-    }
+    // public function load($file_path) {
+    //     include ROOT . DS . str_replace(['\\','/'], DS, $file_path );
+    // }
     
     /*
      * call the controller method using the response received from router
      */
     public function dispatch() {
-        
         try {
+            $this->controller = $this->controller_array[$this->route_index];
+            $this->route_index++;
             
             $this->check_php_version_support();
         
             if( empty($this->controller) ) {
-                Route::show_404(View::make(Config::get('app.404','modules/404')));
+                $this->route->show_404($this->view->make($this->config->get('app.404','modules/404')));
             }
+
+            $next = function() {
+                $this->dispatch();
+            };
+            array_push($this->controller['params'], $next);
             
             if( $this->controller['is_closure'] ) {
                 //instead of calling the closure directly we use call_user_func_array so we can
@@ -201,7 +225,10 @@ class App {
                 }
                 
                 /* call the controller method with passed arguments and capture returned response */
-                $response = call_user_func_array( array( $controller_instance, $this->controller['method']), $this->controller['params'] );
+                $response = call_user_func_array(
+                    array( $controller_instance, $this->controller['method']),
+                    $this->controller['params']
+                );
                             
             }
             
@@ -223,17 +250,19 @@ class App {
                 echo $response;
             }        
             
+            // TODO - Remove active connections
+            /*
             if( Config::get('app.db_profiler') == true ) {
                 $profiler_array = [];
-                foreach( DB::get_active_connections() as $db_obj ) {
+                foreach( $this->db->get_active_connections() as $db_obj ) {
                     $query_array = $db_obj->sel("show profiles",[]);
                     foreach($query_array as $row) {
-                        //$profiler_array[] = ['Query'=>$row->Query, 'Duration'=>$row->Duration];
                         $profiler_array[] = "<b>Query:</b> ".$row->Query."<br/><b>Duration:</b> ".$row->Duration;
                     }
                 }
                 echo implode("<br/><hr/>", $profiler_array);
             }
+            */
         }
         catch( Pa_Exception $e ) {
             echo $e->errorMessage();
