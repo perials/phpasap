@@ -39,7 +39,7 @@ namespace core\classes;
 //Deny direct access
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 
-class Request_Handler implements Request {
+class Swoole_Request implements Request {
     use Loader;
 
     public function __construct($app) {
@@ -51,10 +51,7 @@ class Request_Handler implements Request {
      * returns true if ajax else returns false
      */
     public function ajax() {
-        if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')
-            return true;
-        else
-            return false;
+        throw new Pa_Exception('Not supported in Swoole version');
     }
     
     /**
@@ -64,10 +61,10 @@ class Request_Handler implements Request {
      */
     public function get($param=null) {
         if($param==null)
-        return $_GET;
+        return $this->app->swoole_request->get;
         
-        if( isset( $_GET[$param] ) )
-        return $_GET[$param];
+        if( isset( $this->app->swoole_request->get[$param] ) )
+        return $this->app->swoole_request->get[$param];
         else
         return false;
     }
@@ -79,10 +76,10 @@ class Request_Handler implements Request {
      */
     public function post($param=null) {
         if($param==null)
-        return $_POST;
+        return $this->app->swoole_request->post;
         
-        if( isset( $_POST[$param] ) )
-        return $_POST[$param];
+        if( isset( $this->app->swoole_request->post[$param] ) )
+        return $this->app->swoole_request->post[$param];
         else
         return false;
     }
@@ -93,21 +90,24 @@ class Request_Handler implements Request {
      * @param string
      */
     public function fetch($param) {
-        if( isset( $_REQUEST[$param] ) )
-        return $_REQUEST[$param];
-        else
-        return false;
+        if($this->app->swoole_request->server['request_method'] === 'GET') {
+            return $this->get($param);
+        }
+        return $this->post($param);
     }
     
     public function all() {
-        return $_REQUEST;
+        if($this->app->swoole_request->server['request_method'] === 'GET') {
+            return $this->get();
+        }
+        return $this->post();
     }
     
     /**
      * FIXME deprecate this as this is already there in HTML::url_to()
      */
     public function url_to($url) {
-        return $this->base_url().'/'.rtrim($url, '/');
+        return $this->route->base_url().'/'.rtrim($url, '/');
     }
     
     /**
@@ -135,8 +135,7 @@ class Request_Handler implements Request {
     }
     
     public function redirect_header() {
-        header('Location: '.$this->redirect_to);
-        die;
+        $this->app->swoole_response->redirect($this->redirect_to);
     }
     
     public function with($flash_data_array) {
@@ -157,14 +156,14 @@ class Request_Handler implements Request {
      * @return boolean
      */
     public function is($url_to_check='') {
-        if( HTML::url($url_to_check) == $this->route->get_current_url() )
+        if( $this->html->url($url_to_check) == $this->route->get_current_url() )
             return true;
         else
             return false;
     }
 
     public function method() {
-        return $_SERVER['REQUEST_METHOD'];
+        return $this->app->swoole_request->server['request_method'];
     }
     
 }

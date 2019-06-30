@@ -117,3 +117,7 @@ App::register('route', function($app) {
 App::register('db', function($app) {
     return new core\classes\Model($app);
 });
+
+App::register('response', function($app) {
+    return new core\classes\Response_Handler($app);
+});

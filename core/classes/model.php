@@ -49,9 +49,7 @@ class Model {
     private $username;
     private $password;
 	
-	public static $active_connections = [];
-	
-	private static $common_connection = false;
+	// private static $common_connection = false;
 	private $connection = false;
 
 	protected $primary_key = [];
@@ -71,15 +69,18 @@ class Model {
     private $order_by = array();
     private $group_by = array();
     
-    public function __construct($app) {
+    public function __construct(&$app) {
         $this->app = $app;
-        if( self::$common_connection === false ) {
+        if( !$this->app->db_connection ) {
+        // if( self::$common_connection === false ) {
 			
 			$db_credentials_array = $this->config->get('database');
 			
 			try {
-				self::$common_connection = new \PDO('mysql:host='.$db_credentials_array['hostname'].';dbname='.$db_credentials_array['database'].';charset=utf8', $db_credentials_array['username'], $db_credentials_array['password']);
-				self::$common_connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+				// self::$common_connection = new \PDO('mysql:host='.$db_credentials_array['hostname'].';dbname='.$db_credentials_array['database'].';charset=utf8', $db_credentials_array['username'], $db_credentials_array['password']);
+				// self::$common_connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+				$this->app->db_connection = new \PDO('mysql:host='.$db_credentials_array['hostname'].';dbname='.$db_credentials_array['database'].';charset=utf8', $db_credentials_array['username'], $db_credentials_array['password']);
+				$this->app->db_connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 			}
 			catch(\PDOException $e) {
 				
@@ -87,7 +88,10 @@ class Model {
 				
 			}
 			
-			$this->connection = self::$common_connection;
+			// $this->connection = self::$common_connection;
+            $this->connection = $this->app->db_connection;
+            
+            echo "=== Creating new connection ===";
 			
 			if( $this->config->get('app.debug') == true ) {
 				$this->query("set profiling_history_size=1000");
@@ -97,9 +101,9 @@ class Model {
 		}
 		
 		if( $this->connection === false )
-		$this->connection = self::$common_connection;
-		
-		self::$active_connections[] = $this;
+		$this->connection = $this->app->db_connection;
+		// if( $this->connection === false )
+		// $this->connection = self::$common_connection;
     }
     
     /*
@@ -536,9 +540,5 @@ class Model {
 	
 	public function get_by_id($id) {
 		return $this->table($this->get_table())->where($this->primary_key,"=",$id)->first();
-	}
-	
-	public function get_active_connections() {
-		return self::$active_connections;
 	}
 }

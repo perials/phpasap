@@ -1,8 +1,3 @@
-<?php
-use core\alias\HTML;
-use core\alias\Session;
-?>
-
 <div class="container">
     <h3 class="mt-5">All Todos <small><a class="badge badge-success" href="<?php echo $this->html->url('todo/add'); ?>">Add new</a></small></h3>
     <?php if($this->session->get("success")) { ?>
@@ -33,7 +28,7 @@ use core\alias\Session;
                     <td><?php echo $todo->title; ?></td>
                     <td><?php echo $todo->due_date; ?></td>
                     <td>
-                        <a class="btn btn-secondary" href="<?php echo $this->html->url("todo/edit/" . $todo->id); ?>">Edit</a>
+                        <a class="btn btn-light border" href="<?php echo $this->html->url("todo/edit/" . $todo->id); ?>">Edit</a>
                         <form class="d-inline" action="<?php echo $this->html->url("todo/delete/" . $todo->id); ?>" method="post">
                             <button class="btn btn-danger">Delete</button>
                         </form>

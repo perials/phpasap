@@ -62,14 +62,14 @@ class App {
     
     public function __construct() {
        
-        //Conditionally sets debug mode 
+        // Conditionally sets debug mode 
         $this->debug_mode();
         
-        //Save version of PHP 
+        // Save version of PHP 
         $this->php_version = $this->get_php_version();
         
-        //Start the session. Session is required by our core Session_Handler class
-        $this->start_session();
+        // Start the session. Session is required by our core Form_Handler class
+        // $this->session->start_session();
         
         $this->set_error_handler();
     }
@@ -113,32 +113,6 @@ class App {
         }
     }
     
-    /**
-     * starts session if not started already
-     * depending upon the version of php checks if already session has started
-     */
-    public function start_session() {
-        if($this->php_version >= 5.4) {
-            // This is how we check for session started or not as of 5.4
-            if (session_status() == PHP_SESSION_NONE) {
-                session_start();
-            }
-        }
-        else {
-            /**
-             * FIXME Support for < 5.4 should be removed
-             * we are using [] arrays which is not supported by ver < 5.4
-             * so below is not needed in first place
-             * So if php ver < 5.4 then raise an exception
-             */
-            
-            // Old way (PHP < 5.4) of checking if session has started or not
-            if(session_id() == '') {
-                session_start();
-            }
-        }
-    }
-    
     /*
      * returns current version of PHP on server
      */
@@ -161,13 +135,19 @@ class App {
         self::$route_array[] = ['CONTROLLER', $url, $callback];
         // $this->route->add('CONTROLLER', $url, $callback);
     }
+
+    public static function use($callback) {
+        self::$route_array[] = ['ANY', true, $callback];
+    }
     
     /*
      * loads the routes files and checks for a match against current request
      */
     public function map() {
-        // $this->load('app\routes.php');
-        // $this->controller = $this->route->dispatch();
+        // Check if using PHP version > 5.4
+        // We are not checking this in constructor because it won't be captured in try catch 
+        $this->check_php_version_support();
+
         foreach(self::$route_array as $route_array) {
             $this->route->add($route_array[0], $route_array[1], $route_array[2]);
         }
@@ -191,14 +171,16 @@ class App {
      */
     public function dispatch() {
         try {
+            if( empty($this->controller_array) ) {
+                return $this->response->show_404($this->view->make($this->config->get('app.404','modules/404')));
+            }
+
+            if( !isset($this->controller_array[$this->route_index]) ) {
+                return $this->response->show_404($this->view->make($this->config->get('app.404','modules/404')));
+            }
+
             $this->controller = $this->controller_array[$this->route_index];
             $this->route_index++;
-            
-            $this->check_php_version_support();
-        
-            if( empty($this->controller) ) {
-                $this->route->show_404($this->view->make($this->config->get('app.404','modules/404')));
-            }
 
             $next = function() {
                 $this->dispatch();
@@ -208,6 +190,7 @@ class App {
             if( $this->controller['is_closure'] ) {
                 //instead of calling the closure directly we use call_user_func_array so we can
                 //pass captured variables if any to the closure
+                array_unshift($this->controller['params'], $this);
                 $response = call_user_func_array( $this->controller['closure'], $this->controller['params']);
             }
             else {
@@ -233,22 +216,9 @@ class App {
             }
             
             /* Now handle the response */
-            if( $response instanceof Request_Handler ) {
-                /* If request_handler object then we check if this is a redirect */
-                if( $response->redirect_to )
-                $response->redirect_header();
+            if($response) {
+                $this->response->handle($response);
             }
-            elseif( $response instanceof View_Handler ) {
-                if( $response->is_json() ) {
-                    $response->output_json();
-                }
-                else
-                /* For view object we echo the generated markup */
-                echo $response->get_markup();
-            }
-            elseif( is_string($response) ) {
-                echo $response;
-            }        
             
             // TODO - Remove active connections
             /*
@@ -265,12 +235,19 @@ class App {
             */
         }
         catch( Pa_Exception $e ) {
+            echo "Pa exceiption occurred";
             echo $e->errorMessage();
-            die;
+            $this->response->handle($e->errorMessage());
+        }
+        catch( \Exception $e ) {
+            echo $e->getMessage();
+            $this->response->handle($e->getMessage());
         }
     }
     
-    public static function get_instance() {
+    public static function get_instance($new = false) {
+        if ($new) return new App();
+
         if( !isset(self::$instance) ) self::$instance = new App();
         return self::$instance;
     }

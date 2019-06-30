@@ -37,8 +37,13 @@ namespace core\classes;
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 
 class Route_Handler {
+	use Loader;
+
+	public function __construct($app) {
+		$this->app = $app;
+	}
     
-    private $base_path = '';
+    // private $base_path = '';
 	private $request_uri = '';
 	private $routes_array = array();
 	
@@ -49,7 +54,12 @@ class Route_Handler {
 	 * for http://localhost/phpasap/docs/routes will return phpasap/ (project root is www/phpasap and web root is www)
 	 */
 	public function get_base_path() {
-		return $this->base_path = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
+		// return $this->base_path = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
+		return implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
+	}
+
+	public function get_server_request_uri() {
+		return $_SERVER['REQUEST_URI'];
 	}
     
     /**
@@ -57,7 +67,7 @@ class Route_Handler {
 	 * http://localhost/phpasapraw/docs/routes will return /docs/routes (project root is www/phpasap and web root is www)
 	 */
 	public function get_request_uri() {
-		$uri = substr($_SERVER['REQUEST_URI'], strlen($this->get_base_path()));
+		$uri = substr($this->get_server_request_uri(), strlen($this->get_base_path()));
 		if (strstr($uri, '?')) $uri = substr($uri, 0, strpos($uri, '?'));
 		return $this->request_uri = '/' . trim($uri, '/');
 		//return $this->request_uri = trim($uri, '/');
@@ -97,6 +107,10 @@ class Route_Handler {
 	 * @return string
 	 */
 	public function base_url() {
+		if ($this->config->get('app.swoole_server') && $this->config->get('app.base_url')) {
+			return $this->config->get('app.base_url');
+		}
+
 		$protocol = "http";
 		if( isset($_SERVER['HTTPS'] ) ) {
 			$protocol = "https";
@@ -130,8 +144,14 @@ class Route_Handler {
 			$current_request_uri = $this->get_request_uri();
 			
 			/* Check if HTTP verb matches current request */
-			if( $route_array[0] != 'CONTROLLER' && $route_array[0] != 'ANY' && $_SERVER['REQUEST_METHOD'] != $route_array[0] )
+			if( $route_array[0] != 'CONTROLLER' && $route_array[0] != 'ANY' && $this->request->method() != $route_array[0] )
 			continue;
+
+			// handle global middlewares; app.use case
+			if( $route_array[1] === true ) {
+				$route_callback_array[] = $this->get_route_callback($route_array,[]);
+				continue;
+			}
 			
 			/* This will contain the route parameters to be captures and sent back as controller method arguments */
 			$variables = array();
@@ -194,7 +214,8 @@ class Route_Handler {
 			if( $route_array[0] == 'CONTROLLER' ) {
 				$return_route_match_array['controller'] = $route_array[2];
 				$method = isset($variables[0]) ? $variables[0] : 'index'; 
-				$return_route_match_array['method'] = strtolower($_SERVER['REQUEST_METHOD']). '_' . str_replace('-', '_', $method);
+				// $return_route_match_array['method'] = strtolower($_SERVER['REQUEST_METHOD']). '_' . str_replace('-', '_', $method);
+				$return_route_match_array['method'] = strtolower($this->request->method()). '_' . str_replace('-', '_', $method);
 				array_shift($variables);
 				$return_route_match_array['params'] = empty( $variables ) ? [] : $variables;
 			}

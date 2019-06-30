@@ -38,28 +38,40 @@ if( !defined('ROOT') ) exit('Cheatin\' huh');
 
 class Session_Handler {
     
-    private static $cleared_old_flash = false;
-    private static $flash = [];
+    private $cleared_old_flash = false;
+    private $flash = [];
     
-    public function __construct() {
+    public function __construct($app) {
+        $this->app = $app;
+        $this->start_session();
         $this->clear_old_flash();
+    }
+
+    /**
+     * starts session if not started already
+     * depending upon the version of php checks if already session has started
+     */
+    public function start_session() {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
     }
     
     public function clear_old_flash() {
         
         // if flash already cleared don't do anything
-        if(self::$cleared_old_flash == true) return;
+        if($this->cleared_old_flash === true) return;
         
         $flash_vars = $this->get('flash');
         
         if(!empty($flash_vars) && is_array($flash_vars)) {
             foreach( $flash_vars as $var ) {
-                self::$flash[$var] = $this->get($var);
+                $this->flash[$var] = $this->get($var);
                 $this->remove($var);
             }
         }
         $this->remove('flash');
-        self::$cleared_old_flash = true;
+        $this->cleared_old_flash = true;
     }
     
     /*
@@ -74,8 +86,8 @@ class Session_Handler {
      * first checks for flash and then session
      */
     public function get($name) {
-        if( isset(self::$flash[$name]) ) {
-            return self::$flash[$name];
+        if( isset($this->flash[$name]) ) {
+            return $this->flash[$name];
         }
         elseif( isset($_SESSION[$name]) ) {
             return $_SESSION[$name];

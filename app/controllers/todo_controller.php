@@ -11,7 +11,6 @@ use core\classes\Controller;
 class Todo_Controller extends Controller {
     
     public function get_index() {
-        //$todos = DB::table("todos")->get();
         $todos = $this->db->table("todos")->get();
         $data = [
             'todos' => $todos
@@ -57,6 +56,8 @@ class Todo_Controller extends Controller {
             $this->session->flash('errors', $error_array);
             return $this->request->redirect_to("todo/add")->with_inputs();
         }
+
+        $this->session->set("title", $this->request->post("title"));
         if ($this->request->post("id")) {
             $this->db->table("todos")
             ->where("id", "=", $this->request->post("id"))
