@@ -72,13 +72,9 @@ class Model {
     public function __construct(&$app) {
         $this->app = $app;
         if( !$this->app->db_connection ) {
-        // if( self::$common_connection === false ) {
-			
 			$db_credentials_array = $this->config->get('database');
 			
 			try {
-				// self::$common_connection = new \PDO('mysql:host='.$db_credentials_array['hostname'].';dbname='.$db_credentials_array['database'].';charset=utf8', $db_credentials_array['username'], $db_credentials_array['password']);
-				// self::$common_connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 				$this->app->db_connection = new \PDO('mysql:host='.$db_credentials_array['hostname'].';dbname='.$db_credentials_array['database'].';charset=utf8', $db_credentials_array['username'], $db_credentials_array['password']);
 				$this->app->db_connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 			}
@@ -88,8 +84,7 @@ class Model {
 				
 			}
 			
-			// $this->connection = self::$common_connection;
-            $this->connection = $this->app->db_connection;
+			$this->connection = $this->app->db_connection;
             
             echo "=== Creating new connection ===";
 			
@@ -102,8 +97,6 @@ class Model {
 		
 		if( $this->connection === false )
 		$this->connection = $this->app->db_connection;
-		// if( $this->connection === false )
-		// $this->connection = self::$common_connection;
     }
     
     /*
