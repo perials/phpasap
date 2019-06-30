@@ -84,15 +84,12 @@ class Model {
 				
 			}
 			
-			$this->connection = $this->app->db_connection;
+            $this->connection = $this->app->db_connection;
             
-            echo "=== Creating new connection ===";
-			
 			if( $this->config->get('app.debug') == true ) {
 				$this->query("set profiling_history_size=1000");
 				$this->query("set profiling=1");
 			}
-			
 		}
 		
 		if( $this->connection === false )
