@@ -235,12 +235,11 @@ class App {
             */
         }
         catch( Pa_Exception $e ) {
-            echo "Pa exceiption occurred";
-            echo $e->errorMessage();
+            error_log($e->errorMessage());
             $this->response->handle($e->errorMessage());
         }
         catch( \Exception $e ) {
-            echo $e->getMessage();
+            error_log($e->getMessage());
             $this->response->handle($e->getMessage());
         }
     }
