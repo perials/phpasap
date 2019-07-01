@@ -39,7 +39,7 @@ if( !defined('ROOT') ) exit('Cheatin\' huh');
 class Route_Handler {
 	use Loader;
 
-	public function __construct($app) {
+	public function __construct(&$app) {
 		$this->app = $app;
 	}
     
@@ -107,8 +107,8 @@ class Route_Handler {
 	 * @return string
 	 */
 	public function base_url() {
-		if ($this->config->get('app.swoole_server') && $this->config->get('app.base_url')) {
-			return $this->config->get('app.base_url');
+		if ($this->config->get('app.swoole_server') && $this->config->get('app.swoole_base_url')) {
+			return $this->config->get('app.swoole_base_url');
 		}
 
 		$protocol = "http";

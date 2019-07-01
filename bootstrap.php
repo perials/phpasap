@@ -82,42 +82,42 @@ if( file_exists(ROOT. DS . 'vendor' . DS . 'autoload.php') ) {
 }
 
 // register our core properties
-App::register('config', function($app) {
+App::register('config', function(&$app) {
     return new core\classes\Config_Loader($app);
 });
 
-App::register('view', function($app) {
+App::register('view', function(&$app) {
     return new core\classes\View_Handler($app);
 });
 
-App::register('request', function($app) {
+App::register('request', function(&$app) {
     return new core\classes\Request_Handler($app);
 });
 
-App::register('validator', function($app) {
+App::register('validator', function(&$app) {
     return new core\classes\Validation_Handler($app);
 });
 
-App::register('session', function($app) {
+App::register('session', function(&$app) {
     return new core\classes\Session_Handler($app);
 });
 
-App::register('form', function($app) {
+App::register('form', function(&$app) {
     return new core\classes\Form_Builder($app);
 });
 
-App::register('html', function($app) {
+App::register('html', function(&$app) {
     return new core\classes\Html_Builder($app);
 });
 
-App::register('route', function($app) {
+App::register('route', function(&$app) {
     return new core\classes\Route_Handler($app);
 });
 
-App::register('db', function($app) {
+App::register('db', function(&$app) {
     return new core\classes\Model($app);
 });
 
-App::register('response', function($app) {
+App::register('response', function(&$app) {
     return new core\classes\Response_Handler($app);
 });

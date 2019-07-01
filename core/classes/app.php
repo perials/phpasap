@@ -61,7 +61,6 @@ class App {
     public static $route_array = [];
     
     public function __construct() {
-       
         // Conditionally sets debug mode 
         $this->debug_mode();
         
@@ -84,6 +83,18 @@ class App {
             return $this->{$property};
         }
         return null;
+    }
+
+    public function clear() {
+        foreach(array_keys(self::$lazy_load_properties) as $property) {
+            if (isset($this->{$property})) {
+                unset($this->{$property});
+            }
+        }
+
+        // we are using closures
+        // setting controller property to null is required for properly destructing $app variable
+        $this->controller = null;
     }
     
     /**
@@ -156,17 +167,6 @@ class App {
     }
     
     /*
-     * includes files without needing to pass the entire path
-     * also takes care of the directory separtor
-     *
-     * @param string $file_path path of the file relative to project root
-     * Eg App::load('controller/home.php')
-     */
-    // public function load($file_path) {
-    //     include ROOT . DS . str_replace(['\\','/'], DS, $file_path );
-    // }
-    
-    /*
      * call the controller method using the response received from router
      */
     public function dispatch() {
@@ -182,10 +182,9 @@ class App {
             $this->controller = $this->controller_array[$this->route_index];
             $this->route_index++;
 
-            $next = function() {
+            array_push($this->controller['params'], function() {
                 $this->dispatch();
-            };
-            array_push($this->controller['params'], $next);
+            });
             
             if( $this->controller['is_closure'] ) {
                 //instead of calling the closure directly we use call_user_func_array so we can
@@ -207,32 +206,19 @@ class App {
                     show_error('Controller method doesn\'t exists',true);
                 }
                 
-                /* call the controller method with passed arguments and capture returned response */
+                // call the controller method with passed arguments and capture returned response
                 $response = call_user_func_array(
                     array( $controller_instance, $this->controller['method']),
                     $this->controller['params']
                 );
-                            
+                
+                unset($controller_instance);
             }
             
-            /* Now handle the response */
+            // Now handle the response
             if($response) {
                 $this->response->handle($response);
             }
-            
-            // TODO - Remove active connections
-            /*
-            if( Config::get('app.db_profiler') == true ) {
-                $profiler_array = [];
-                foreach( $this->db->get_active_connections() as $db_obj ) {
-                    $query_array = $db_obj->sel("show profiles",[]);
-                    foreach($query_array as $row) {
-                        $profiler_array[] = "<b>Query:</b> ".$row->Query."<br/><b>Duration:</b> ".$row->Duration;
-                    }
-                }
-                echo implode("<br/><hr/>", $profiler_array);
-            }
-            */
         }
         catch( Pa_Exception $e ) {
             error_log($e->errorMessage());

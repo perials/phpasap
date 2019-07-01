@@ -5,16 +5,16 @@ use core\classes\App;
 require 'bootstrap.php';
 
 // Overwrite default properties with Swoole specific ones
-App::register('request', function($app) {
+App::register('request', function(&$app) {
     return new core\classes\Swoole_Request($app);
 });
-App::register('route', function($app) {
+App::register('route', function(&$app) {
     return new core\classes\Swoole_Route_Handler($app);
 });
-App::register('response', function($app) {
+App::register('response', function(&$app) {
     return new core\classes\Swoole_Response_Handler($app);
 });
-App::register('session', function($app) {
+App::register('session', function(&$app) {
     return new core\classes\Swoole_Session_Handler($app);
 });
 
@@ -48,10 +48,8 @@ App::controller('todo', 'Todo_Controller');
 
 $http = new swoole_http_server('0.0.0.0', 3000);
 $http->on('request', function($request, $response) {
-    
     // Create new app instance
-    // we are passing true to get a new instance
-    $app = App::get_instance(true);
+    $app = new App();
 
     // Set swoole request and response
     $app->swoole_request = $request;
@@ -62,5 +60,7 @@ $http->on('request', function($request, $response) {
 
     // If match occurs the appropriate controller method will be called with passed arguments
     $app->dispatch();
+
+    $app->clear();
 });
 $http->start();

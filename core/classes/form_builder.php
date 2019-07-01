@@ -41,7 +41,7 @@ if( !defined('ROOT') ) exit('Cheatin\' huh');
 class Form_Builder {
     use Loader;
 
-    public function __construct($app) {
+    public function __construct(&$app) {
         $this->app = $app;
     }
     

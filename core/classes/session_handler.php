@@ -41,7 +41,7 @@ class Session_Handler {
     private $cleared_old_flash = false;
     private $flash = [];
     
-    public function __construct($app) {
+    public function __construct(&$app) {
         $this->app = $app;
         $this->start_session();
         $this->clear_old_flash();

@@ -4,12 +4,13 @@ return [
 
     'debug' => true,
 
-	//set this to boolean true to output executed database queries
+	// set this to boolean true to output executed database queries
 	'db_profiler' => false,
 
-	'swoole_server' => false,
+	// set to true if using Swoole
+	'swoole_server' => true,
 	// set base_url if using swoole_server
-	'base_url' => 'http://localhost:3000'
+	'swoole_base_url' => ''
     
 ];
 

@@ -42,7 +42,7 @@ if( !defined('ROOT') ) exit('Cheatin\' huh');
 class Swoole_Response_Handler {
     use Loader;
 
-    public function __construct($app) {
+    public function __construct(&$app) {
         $this->app = $app;
     }
     
