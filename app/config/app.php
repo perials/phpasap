@@ -8,7 +8,7 @@ return [
 	'db_profiler' => false,
 
 	// set to true if using Swoole
-	'swoole_server' => true,
+	'swoole_server' => false,
 	// set base_url if using swoole_server
 	'swoole_base_url' => ''
     
