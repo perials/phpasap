@@ -39,8 +39,8 @@ if( !defined('ROOT') ) exit('Cheatin\' huh');
 class View_Handler {
     use Loader;
     
-    public function __construct(&$app) {
-        $this->app = $app;
+    public function __construct(&$app = NULL) {
+        $this->app = $app ? $app : App::get_instance();
     }
     
     private $markup = '';

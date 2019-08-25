@@ -69,8 +69,8 @@ class Model {
     private $order_by = array();
     private $group_by = array();
     
-    public function __construct(&$app) {
-        $this->app = $app;
+    public function __construct(&$app = NULL) {
+        $this->app = $app ? $app : App::get_instance();
         if( !$this->app->db_connection ) {
 			$db_credentials_array = $this->config->get('database');
 			

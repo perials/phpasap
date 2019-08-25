@@ -41,8 +41,8 @@ if( !defined('ROOT') ) exit('Cheatin\' huh');
 class Html_Builder {
     use Loader;
     
-    public function __construct(&$app) {
-        $this->app = $app;
+    public function __construct(&$app = NULL) {
+        $this->app = $app ? $app : App::get_instance();
     }
     
     /**

@@ -44,8 +44,8 @@ class Controller {
     // these are the properties to be lazy loaded from app
     //private $app_properties = ['view', 'request', 'validator', 'session', 'db'];
     
-    public function __construct(&$app) {
-        $this->app = $app;
+    public function __construct(&$app = NULL) {
+        $this->app = $app ? $app : App::get_instance();
     }
     
     //public function __get($property) {

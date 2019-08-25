@@ -2,11 +2,11 @@
 namespace app\Controllers;
 
 use core\classes\Controller;
-// use core\alias\View;
+use core\alias\View;
 // use core\alias\Request;
 // use core\alias\Validator;
 // use core\alias\Session;
-// use core\alias\Db;
+use core\alias\Db;
 
 class Todo_Controller extends Controller {
     
@@ -15,7 +15,8 @@ class Todo_Controller extends Controller {
         $data = [
             'todos' => $todos
         ];
-        return $this->view->make("templates/main", ["content"=>$this->view->render("modules/todo/list", $data)]);
+        return View::make("templates/main", ["content"=>View::render("modules/todo/list", $data)]);
+        // return $this->view->make("templates/main", ["content"=>$this->view->render("modules/todo/list", $data)]);
     }
     
     public function get_add() {
@@ -26,7 +27,7 @@ class Todo_Controller extends Controller {
     }
     
     public function get_edit($id) {
-        $todo = $this->db->table("todos")->where("id", "=", $id)->first();
+        $todo = Db::table("todos")->where("id", "=", $id)->first();
         if (!$todo) {
             return $this->request->redirect_to("todo")->with(["errors" => ["Invalid Id"]]);
         }

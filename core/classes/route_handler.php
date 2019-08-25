@@ -39,9 +39,9 @@ if( !defined('ROOT') ) exit('Cheatin\' huh');
 class Route_Handler {
 	use Loader;
 
-	public function __construct(&$app) {
-		$this->app = $app;
-	}
+	public function __construct(&$app = NULL) {
+        $this->app = $app ? $app : App::get_instance();
+    }
     
     // private $base_path = '';
 	private $request_uri = '';
@@ -115,7 +115,12 @@ class Route_Handler {
 		if( isset($_SERVER['HTTPS'] ) ) {
 			$protocol = "https";
 		}
-        return $protocol.'://'.$_SERVER['SERVER_NAME'].implode('/',array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1));
+
+		$port = "";
+		if ($_SERVER["SERVER_PORT"] !== 80) {
+			$port = ":" . $_SERVER["SERVER_PORT"];
+		}
+        return $protocol.'://'.$_SERVER['SERVER_NAME'].$port.implode('/',array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1));
     }
     
 	/**
