@@ -1,0 +1,14 @@
+{
+    "name": "perials/phpasap",
+    "description": "A bare minimum PHP framework with small footprint, easy installation, simple architecture and blazingly fast performance",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Perials",
+            "email": "info@perials.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
