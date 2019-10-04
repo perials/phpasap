@@ -31,29 +31,11 @@
  * @link	    https://phpasap.com
  */
 
-//Deny direct access
-if( !defined('ROOT') ) exit('Cheatin\' huh');
- 
-class Alias_Loader {
-    
-    /**
-     * This will contain all the instances of the classes that are aliased
-     */
-    public static $instances = [];
-    
-    /**
-     * magic method callback when non existent static method is called
-     * 
-     * @param string $method: the method which is called
-     * @param array $args: the arguments passed to the method
-     */
-    public static function __callStatic($method,$args) {
-        global $alias;
-        if( !isset( self::$instances[static::get_my_class_name()] ) ) {
-            $class_name = $alias[static::get_my_class_name()];
-            self::$instances[static::get_my_class_name()] = new $class_name;
-        }
-        return call_user_func_array([ self::$instances[static::get_my_class_name()], $method ], $args);
-    }
-    
+namespace core\alias;
+
+use core\classes\Alias_Loader;
+
+class Route extends Alias_Loader {
+    protected static $key = 'route';
+    protected static $class_to_alias = '\core\classes\Route_Handler';
 }

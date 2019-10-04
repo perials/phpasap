@@ -31,36 +31,11 @@
  * @link	    https://phpasap.com
  */
 
-//Deny direct access
-if( !defined('ROOT') ) exit('Cheatin\' huh');
+namespace core\alias;
 
-/**
- * This array contains the alias short name of the core and user defined classses
- * Using alias name the non static methods of core classes can be called statically
- *
- * Eg: The below code
- * $model = new Model();
- * $users = $model->query("SELECT * FROM users");
- *
- * can be written as
- *
- * $users = DB::query("SELECT * FROM users");
- *
- * To do the above the Model class has been aliased as DB
- */
-return [
-    
-    /* Core classes. Donot modify these */
-    'DB'                => '\core\classes\Model',
-    'Config'            => '\core\classes\Config_Loader',
-    'Cookie'            => '\core\classes\Cookie_Handler',
-    'Session'           => '\core\classes\Session_Handler',
-    'Route'             => '\core\classes\Route_Handler',            
-    'Request'           => '\core\classes\Request_Handler',
-    'View'              => '\core\classes\View_Handler',
-    'Form'              => '\core\classes\Form_Builder',
-    'HTML'              => '\core\classes\Html_Builder',
-    'Validator'         => '\core\classes\Validation_Handler',
-    'Mail'              => '\core\classes\Mail_Handler',
-    'PA_Exception'      => '\core\classes\PA_Exception',
-];
+use core\classes\Alias_Loader;
+
+class Session extends Alias_Loader {
+    protected static $key = 'session';
+    protected static $class_to_alias = '\core\classes\Session_Handler';
+}

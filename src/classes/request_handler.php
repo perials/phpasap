@@ -33,10 +33,18 @@
 
 namespace core\classes;
 
+// use core\alias\Route;
+// use core\alias\Session;
+
 //Deny direct access
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 
-class Request_Handler {
+class Request_Handler implements Request {
+    use Loader;
+
+    public function __construct(&$app = NULL) {
+        $this->app = $app ? $app : App::get_instance();
+    }
     
     /*
      * check if ajax request
@@ -117,7 +125,7 @@ class Request_Handler {
             $this->redirect_to = $url;
         }
         else
-            $this->redirect_to = Route::base_url().'/'.rtrim($url, '/');
+            $this->redirect_to = $this->route->base_url().'/'.rtrim($url, '/');
         if( $hard_redirect === true ) {
             $this->redirect_header();    
         }
@@ -132,12 +140,12 @@ class Request_Handler {
     }
     
     public function with($flash_data_array) {
-        Session::flash($flash_data_array);
+        $this->session->flash($flash_data_array);
         return $this;
     }
     
     public function with_inputs() {
-        Session::flash($this->all());
+        $this->session->flash($this->all());
         return $this;
     }
     
@@ -149,10 +157,14 @@ class Request_Handler {
      * @return boolean
      */
     public function is($url_to_check='') {
-        if( HTML::url($url_to_check) == Route::get_current_url() )
+        if( HTML::url($url_to_check) == $this->route->get_current_url() )
             return true;
         else
             return false;
+    }
+
+    public function method() {
+        return $_SERVER['REQUEST_METHOD'];
     }
     
 }

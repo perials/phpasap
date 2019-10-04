@@ -1,10 +1,12 @@
 <?php
 namespace app\Controllers;
 
-class Welcome_Controller {
+use core\classes\Controller;
+
+class Welcome_Controller extends Controller {
     
     public function index() {
-        return View::make("templates/main", ["content"=>View::render("modules/welcome")]);    
+        return $this->view->make("templates/main", ["content"=>$this->view->render("modules/welcome")]);
     }
     
 }

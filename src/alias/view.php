@@ -31,20 +31,11 @@
  * @link	    https://phpasap.com
  */
 
-use core\classes\App;
+namespace core\alias;
 
-/* We now register our autoloader and include all the required files */
-require 'bootstrap.php';
+use core\classes\Alias_Loader;
 
-App::get('/', 'Welcome_Controller@index');
-App::controller('crud', 'Crud_Controller');
-App::controller('todo', 'Todo_Controller');
-
-/* Create new app instance */
-$app = App::get_instance();
-
-/* Map the current request with routing array and capture if any match occurs */
-$app->map();
-
-/* If match occurs the appropriate controller method will be called with passed arguments */
-$app->dispatch();
+class View extends Alias_Loader {
+    protected static $key = 'view';
+    protected static $class_to_alias = '\core\classes\View_Handler';
+}

@@ -33,16 +33,23 @@
 
 namespace core\classes;
 
+//use core\alias\Route;
+
 //Deny direct access
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 
 class Html_Builder {
+    use Loader;
+    
+    public function __construct(&$app = NULL) {
+        $this->app = $app ? $app : App::get_instance();
+    }
     
     /**
      * creates the stylesheet link
      *
      * creates a stylesheet link using the relative path provided
-     * if the provided path is starts with http:// or https:// or second param
+     * if the provided path starts with http:// or https:// or second param
      * is false then it is assumed that the provided path is not relative but absolute
      * and is used as it is
      *
@@ -62,7 +69,7 @@ class Html_Builder {
             $absolute_stylesheet_path = $stylesheet_path;
         }
         else {
-            $absolute_stylesheet_path = Route::base_url().'/'.$stylesheet_path;            
+            $absolute_stylesheet_path = $this->route->base_url().'/'.$stylesheet_path;  
         }
         
         $append_params = '';
@@ -94,7 +101,7 @@ class Html_Builder {
             $absolute_script_path = $script_path;
         }
         else {
-            $absolute_script_path = Route::base_url().'/'.$script_path;            
+            $absolute_script_path = $this->route->base_url().'/'.$script_path;            
         }
         
         $append_params = '';
@@ -109,7 +116,7 @@ class Html_Builder {
     }
     
     public function img($script_path) {
-        return '<script src="'.Route::base_url().'/'.$script_path.'" ></script>';
+        return '<script src="'.$this->route->base_url().'/'.$script_path.'" ></script>';
     }
     
     /**
@@ -121,7 +128,7 @@ class Html_Builder {
             $absolute_url = $url;
         }
         else
-            $absolute_url = Route::base_url().'/'.$url;
+            $absolute_url = $this->route->base_url().'/'.$url;
         
         $append_params = '';
         if( is_array($params) ) {
@@ -138,6 +145,6 @@ class Html_Builder {
      * returns absolute url for provided relative url
      */
     public function url($relative_url) {
-        return Route::base_url().'/'.$relative_url;
+        return $this->route->base_url().'/'.$relative_url;
     }
 }

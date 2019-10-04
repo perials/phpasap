@@ -31,98 +31,93 @@
  * @link	    https://phpasap.com
  */
 
+use core\classes\App;
+
 $env = include 'env.php';
 define('ENVIRONMENT',$env);
 
-date_default_timezone_set('UTC');
-
-/* Directory separator is set up here because separators are different on Linux and Windows operating systems */
+// Directory separator is set up here because separators are different on Linux and Windows operating systems
 define('DS', DIRECTORY_SEPARATOR);
 
-/* constant ROOT will contain the path to base dir and will be used for including other files */
+// constant ROOT will contain the path to base dir and will be used for including other files
 define('ROOT', dirname(__FILE__));
 
-//Deny direct access
-//if( !defined('ROOT') ) exit('Cheatin\' huh');
+// All files in the below directories will be required_once
+// These directories should contains helper functions and preferably NO classes
+// Path should be relative to project root
+$helper_directories = [
+    'core' . DS . 'helpers',     
+    'app' . DS . 'helpers',     
+];
 
-/* This contains the directories where autoloader will search into when a class is found */
-$directories_to_autoload_classes = [
-                            'core' . DS . 'classes',
-                            'application' . DS . 'controllers',
-                            'application' . DS . 'models',
-                            'application' . DS . 'libraries',
-                            ];
-
-/* This contains all the files containing functions that will be included */
-$directories_to_include_files = [
-                            'core' . DS . 'helpers',     
-                            'app' . DS . 'helpers',     
-                                ];
-
-/* One by one include all files in all include directories */
-foreach ($directories_to_include_files as $dir) {
+// One by one include all files in all helper directories
+foreach ($helper_directories as $dir) {
     $dir_files = glob(ROOT . DS . $dir . DS . '*.php');
     foreach ($dir_files as $file) {
-        require($file);   
+        require_once($file);
     }
 }
 
-/* load the alias array */
-$GLOBALS['alias'] = (include ROOT . DS . 'core' . DS . 'config' . DS . 'alias.php');
-
-
-
-/* include the alias loader */
-include ROOT . DS . 'core' . DS . 'classes' . DS . 'alias_loader.php';
-
-/* Register our autoload function */
+// Register our autoload function
 spl_autoload_register('autoload_files');
 function autoload_files($class_name) {
-    
-    $alias = $GLOBALS['alias'];
-    
     $namespaced_dir_array = explode(DS, str_replace(['/','\\'], DS, $class_name));
-    $class_name_without_ns = end($namespaced_dir_array);
     
-    /* fist check if any alias with given name exists */
-    if(
-        !empty($alias[$class_name]) //if directly referenced without namespace
-        ||
-        (
-            //check if called through core or app namespace
-            (
-                strpos(str_replace(['/','\\'], DS, $class_name), "core".DS."classes") === 0
-                ||
-                strpos(str_replace(['/','\\'], DS, $class_name), "app".DS) === 0
-            ) &&
-            !empty($alias[$class_name_without_ns])
-        )
-       ) {
-        
-        /* since our aliased classes can be called from different namespace like
-         *  app/Controller/Request
-         *  core/Classes/Request
-         * in all cases we'll be creating a class without namespace in global namespace
-         *  for above two example Request will be created in global namespace
-         * so we firt check if aliased class exists and only then we go ahead and create new one
-         */
-        if( !class_exists($class_name_without_ns) )
-        eval("class {$class_name_without_ns} extends Alias_Loader { public static function get_my_class_name() {return \"$class_name_without_ns\";} }");
-        
-        //workaround for namespace
-        if( $class_name !== $class_name_without_ns )
-        class_alias($class_name_without_ns,$class_name);
-        
-        return;        
+    // if it doesn't starts with app or core then don't proceed further
+    if( !in_array($namespaced_dir_array[0], ['app', 'core']) ) {
+        return;
     }
-    elseif( is_readable( strtolower(str_replace(["/","\\"], DS, ROOT . DS . $class_name).'.php') ) ) {
+    
+    if( is_readable( strtolower(str_replace(["/","\\"], DS, ROOT . DS . $class_name).'.php') ) ) {
         require strtolower(str_replace(["/","\\"], DS, $class_name).'.php');
     }
 }
 
-/**
- * provide support for composer if some one uses it
- */
+// set default time zone
+date_default_timezone_set('UTC');
+
+// provide support for composer if some one uses it
 if( file_exists(ROOT. DS . 'vendor' . DS . 'autoload.php') ) {
     require ROOT. DS . 'vendor' . DS . 'autoload.php';
 }
+
+// register our core properties
+App::register('config', function(&$app) {
+    return new core\classes\Config_Loader($app);
+});
+
+App::register('view', function(&$app) {
+    return new core\classes\View_Handler($app);
+});
+
+App::register('request', function(&$app) {
+    return new core\classes\Request_Handler($app);
+});
+
+App::register('validator', function(&$app) {
+    return new core\classes\Validation_Handler($app);
+});
+
+App::register('session', function(&$app) {
+    return new core\classes\Session_Handler($app);
+});
+
+App::register('form', function(&$app) {
+    return new core\classes\Form_Builder($app);
+});
+
+App::register('html', function(&$app) {
+    return new core\classes\Html_Builder($app);
+});
+
+App::register('route', function(&$app) {
+    return new core\classes\Route_Handler($app);
+});
+
+App::register('db', function(&$app) {
+    return new core\classes\Model($app);
+});
+
+App::register('response', function(&$app) {
+    return new core\classes\Response_Handler($app);
+});

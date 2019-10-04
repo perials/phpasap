@@ -31,20 +31,42 @@
  * @link	    https://phpasap.com
  */
 
-use core\classes\App;
+namespace core\classes;
 
-/* We now register our autoloader and include all the required files */
-require 'bootstrap.php';
+// use core\alias\Route;
+// use core\alias\Session;
 
-App::get('/', 'Welcome_Controller@index');
-App::controller('crud', 'Crud_Controller');
-App::controller('todo', 'Todo_Controller');
+//Deny direct access
+if( !defined('ROOT') ) exit('Cheatin\' huh');
 
-/* Create new app instance */
-$app = App::get_instance();
+class Response_Handler {
+    use Loader;
 
-/* Map the current request with routing array and capture if any match occurs */
-$app->map();
+    public function __construct(&$app = NULL) {
+        $this->app = $app ? $app : App::get_instance();
+    }
+    
+    public function handle($response) {
+        if( get_class($response) === get_class($this->request) ) {
+            /* If request_handler object then we check if this is a redirect */
+            if( $response->redirect_to )
+            $response->redirect_header();
+        }
+        elseif( get_class($response) === get_class($this->view) ) {
+            if( $response->is_json() ) {
+                $response->output_json();
+            }
+            else
+            /* For view object we echo the generated markup */
+            echo $response->get_markup();
+        }
+        elseif( is_string($response) ) {
+            echo $response;
+        }
+    }
 
-/* If match occurs the appropriate controller method will be called with passed arguments */
-$app->dispatch();
+    public function show_404($html) {
+        header("HTTP/1.0 404 Not Found");
+        $this->handle($html);
+    }
+}

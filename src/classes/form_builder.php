@@ -33,15 +33,22 @@
 
 namespace core\classes;
 
+// use core\alias\Session;
+
 //Deny direct access
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 
 class Form_Builder {
+    use Loader;
+
+    public function __construct(&$app = NULL) {
+        $this->app = $app ? $app : App::get_instance();
+    }
     
-    public function text($name=null, $default=null, $attr_assoc_array=array()) {
+    public function input($name=null, $default=null, $attr_assoc_array=array()) {
         if($default===null) {
-            if( Session::get($name) )
-            $default = Session::get($name);
+            if( $this->session->get($name) )
+            $default = $this->session->get($name);
         }
         $attributes_to_append = '';
         foreach($attr_assoc_array as $key=>$value) {
@@ -52,8 +59,8 @@ class Form_Builder {
     
     public function date($name=null, $default=null, $attr_assoc_array=array()) {
         if($default===null) {
-            if( Session::get($name) )
-            $default = Session::get($name);
+            if( $this->session->get($name) )
+            $default = $this->session->get($name);
         }
         $attributes_to_append = '';
         foreach($attr_assoc_array as $key=>$value) {
@@ -72,8 +79,8 @@ class Form_Builder {
     
     public function textarea($name=null,$default=null,$attr_assoc_array=array()) {
         if($default===null) {
-            if( Session::get($name) )
-            $default = Session::get($name);
+            if( $this->session->get($name) )
+            $default = $this->session->get($name);
         }
         $attributes_to_append = '';
         foreach($attr_assoc_array as $key=>$value) {
@@ -84,8 +91,8 @@ class Form_Builder {
     
     public function select( $name=null, $options, $default=null, $attr_assoc_array=array() ) {
         if($default===null) {
-            if( Session::get($name) )
-            $default = Session::get($name);
+            if( $this->session->get($name) )
+            $default = $this->session->get($name);
         }
         $attributes_to_append = '';
         foreach($attr_assoc_array as $key=>$value) {
@@ -106,7 +113,7 @@ class Form_Builder {
         if($default===null) {
             $default = false;
             
-            if(Session::get($name) == $cb_value)
+            if($this->session->get($name) == $cb_value)
             $default = true;
         }
         

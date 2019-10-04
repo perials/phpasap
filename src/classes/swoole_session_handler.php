@@ -31,20 +31,48 @@
  * @link	    https://phpasap.com
  */
 
-use core\classes\App;
+namespace core\classes;
 
-/* We now register our autoloader and include all the required files */
-require 'bootstrap.php';
+//Deny direct access
+if( !defined('ROOT') ) exit('Cheatin\' huh');
 
-App::get('/', 'Welcome_Controller@index');
-App::controller('crud', 'Crud_Controller');
-App::controller('todo', 'Todo_Controller');
+class Swoole_Session_Handler extends Session_Handler {
 
-/* Create new app instance */
-$app = App::get_instance();
+    /**
+     * starts session if not started already
+     * depending upon the version of php checks if already session has started
+     */
+    public function start_session() {
+        // if Session has not started then start it
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+    
+        if (isset($this->app->swoole_request->cookie[session_name()])) {
+            // Client has session cookie set, but Swoole might have session_id() from some
+            // other request, so we need to regenerate it
+            session_id($this->app->swoole_request->cookie[session_name()]);
+        } else {
+            $params = session_get_cookie_params();
+            $unique_id = session_id();
+    
+            if (session_id()) {
+                $unique_id = \bin2hex(\random_bytes(32));
+                session_id($unique_id);
+            }
 
-/* Map the current request with routing array and capture if any match occurs */
-$app->map();
-
-/* If match occurs the appropriate controller method will be called with passed arguments */
-$app->dispatch();
+            // Clear session variable
+            $_SESSION = [];
+    
+            $this->app->swoole_response->rawcookie(
+                session_name(),
+                $unique_id,
+                $params['lifetime'] ? time() + $params['lifetime'] : null,
+                $params['path'],
+                $params['domain'],
+                $params['secure'],
+                $params['httponly']
+            );
+        }
+    }
+}

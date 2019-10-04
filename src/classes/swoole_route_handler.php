@@ -31,20 +31,25 @@
  * @link	    https://phpasap.com
  */
 
-use core\classes\App;
+namespace core\classes;
 
-/* We now register our autoloader and include all the required files */
-require 'bootstrap.php';
+//Deny direct access
+if( !defined('ROOT') ) exit('Cheatin\' huh');
 
-App::get('/', 'Welcome_Controller@index');
-App::controller('crud', 'Crud_Controller');
-App::controller('todo', 'Todo_Controller');
-
-/* Create new app instance */
-$app = App::get_instance();
-
-/* Map the current request with routing array and capture if any match occurs */
-$app->map();
-
-/* If match occurs the appropriate controller method will be called with passed arguments */
-$app->dispatch();
+class Swoole_Route_Handler extends Route_Handler {
+	
+	/**
+	 * Returns base path of current url
+	 * Eg for http://some-domain.com/folder-1/folder-2/index.php will give /folder-1/folder-2
+	 * for http://localhost/phpasap/index.php/docs/routes will return phpasap/ (project root is www/phpasap and web root is www)
+	 * for http://localhost/phpasap/docs/routes will return phpasap/ (project root is www/phpasap and web root is www)
+	 */
+	public function get_base_path() {
+		return '/';
+    }
+    
+    public function get_server_request_uri() {
+		return $this->app->swoole_request->server['request_uri'];
+	}
+    
+}

@@ -31,20 +31,29 @@
  * @link	    https://phpasap.com
  */
 
-use core\classes\App;
+/**
+ * TO BE IMPLEMENTED
+ */
+namespace core\classes;
 
-/* We now register our autoloader and include all the required files */
-require 'bootstrap.php';
+//Deny direct access
+if( !defined('ROOT') ) exit('Cheatin\' huh');
 
-App::get('/', 'Welcome_Controller@index');
-App::controller('crud', 'Crud_Controller');
-App::controller('todo', 'Todo_Controller');
-
-/* Create new app instance */
-$app = App::get_instance();
-
-/* Map the current request with routing array and capture if any match occurs */
-$app->map();
-
-/* If match occurs the appropriate controller method will be called with passed arguments */
-$app->dispatch();
+class Controller {
+    use Loader;
+    // these are the properties to be lazy loaded from app
+    //private $app_properties = ['view', 'request', 'validator', 'session', 'db'];
+    
+    public function __construct(&$app = NULL) {
+        $this->app = $app ? $app : App::get_instance();
+    }
+    
+    //public function __get($property) {
+    //    echo "Call to unknow prerty " . $property;
+    //    if (in_array($property, $this->app_properties)) {
+    //        $this->{$property} = &$this->app->{$property};
+    //        return $this->{$property};
+    //    }
+    //    return null;
+    //}
+}

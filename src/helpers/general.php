@@ -65,9 +65,7 @@ function generate_random_string($length=20) {
  * @return void
  */
 function show_error($error_msg, $truncate_script=false) {
-    echo "<div style='background-color: #fff; color: #EF6767; padding: 13px; border: 1px solid #eee; border-left: 4px solid #EF6767; font-family: Consolas, monaco, monospace; font-size: 14px; margin-bottom:15px;'>$error_msg</div>";
-    
-    if($truncate_script) die;
+    return "<div style='background-color: #fff; color: #EF6767; padding: 13px; border: 1px solid #eee; border-left: 4px solid #EF6767; font-family: Consolas, monaco, monospace; font-size: 14px; margin-bottom:15px;'>$error_msg</div>";
 }
 
 function pa_error_handler($number, $string, $file, $line, $context) {

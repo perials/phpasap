@@ -41,6 +41,10 @@
 
 namespace core\classes;
 
+// use core\alias\Config;
+// use core\alias\Route;
+// use core\alias\View;
+
 //Deny direct access
 if( !defined('ROOT') ) exit('Cheatin\' huh');
 
@@ -50,19 +54,47 @@ class App {
      * for singleton use
      */
     private static $instance = null;
+
+    private $route_index = 0; // current middleware index to run
+    
+    public static $lazy_load_properties = [];
+    public static $route_array = [];
     
     public function __construct() {
-       
-        //Conditionally sets debug mode 
+        // Conditionally sets debug mode 
         $this->debug_mode();
         
-        //Save version of PHP 
+        // Save version of PHP 
         $this->php_version = $this->get_php_version();
         
-        //Start the session. Session is required by our core Session_Handler class
-        $this->start_session();
+        // Start the session. Session is required by our core Form_Handler class
+        // $this->session->start_session();
         
         $this->set_error_handler();
+    }
+    
+    public static function register($key, $closure_callback) {
+        self::$lazy_load_properties[$key] = $closure_callback;
+    }
+    
+    public function __get($property) {
+        if (isset(self::$lazy_load_properties[$property])) {
+            $this->{$property} = self::$lazy_load_properties[$property]($this);
+            return $this->{$property};
+        }
+        return null;
+    }
+
+    public function clear() {
+        foreach(array_keys(self::$lazy_load_properties) as $property) {
+            if (isset($this->{$property})) {
+                unset($this->{$property});
+            }
+        }
+
+        // we are using closures
+        // setting controller property to null is required for properly destructing $app variable
+        $this->controller = null;
     }
     
     /**
@@ -82,39 +114,13 @@ class App {
     private function debug_mode() {
         
         //Check if debug variable set in app.php config file
-        if( Config::get('app.debug') === true ) {            
+        if( $this->config->get('app.debug') === true ) {
             //Set error reporting to true
             error_reporting(E_ALL);
             ini_set('display_errors', 1);            
         }
         else {
             error_reporting(0);
-        }
-    }
-    
-    /**
-     * starts session if not started already
-     * depending upon the version of php checks if already session has started
-     */
-    public function start_session() {
-        if($this->php_version >= 5.4) {
-            // This is how we check for session started or not as of 5.4
-            if (session_status() == PHP_SESSION_NONE) {
-                session_start();
-            }
-        }
-        else {
-            /**
-             * FIXME Support for < 5.4 should be removed
-             * we are using [] arrays which is not supported by ver < 5.4
-             * so below is not needed in first place
-             * So if php ver < 5.4 then raise an exception
-             */
-            
-            // Old way (PHP < 5.4) of checking if session has started or not
-            if(session_id() == '') {
-                session_start();
-            }
         }
     }
     
@@ -130,42 +136,60 @@ class App {
             throw new Pa_Exception("PHP version not supported", 8888);
         }
     }
+
+    public static function get($url, $callback) {
+        self::$route_array[] = ['GET', $url, $callback];
+        // $this->route->add('GET', $url, $callback);
+    }
+
+    public static function controller($url, $callback) {
+        self::$route_array[] = ['CONTROLLER', $url, $callback];
+        // $this->route->add('CONTROLLER', $url, $callback);
+    }
+
+    public static function use($callback) {
+        self::$route_array[] = ['ANY', true, $callback];
+    }
     
     /*
      * loads the routes files and checks for a match against current request
      */
     public function map() {
-        $this->load('app\routes.php');
-        $this->controller = Route::dispatch();
-    }
-    
-    /*
-     * includes files without needing to pass the entire path
-     * also takes care of the directory separtor
-     *
-     * @param string $file_path path of the file relative to project root
-     * Eg App::load('controller/home.php')
-     */
-    public function load($file_path) {
-        include ROOT . DS . str_replace(['\\','/'], DS, $file_path );
+        // Check if using PHP version > 5.4
+        // We are not checking this in constructor because it won't be captured in try catch 
+        $this->check_php_version_support();
+
+        foreach(self::$route_array as $route_array) {
+            $this->route->add($route_array[0], $route_array[1], $route_array[2]);
+        }
+
+        $this->controller_array = $this->route->dispatch();
     }
     
     /*
      * call the controller method using the response received from router
      */
     public function dispatch() {
-        
         try {
-            
-            $this->check_php_version_support();
-        
-            if( empty($this->controller) ) {
-                Route::show_404(View::make(Config::get('app.404','modules/404')));
+            if( empty($this->controller_array) ) {
+                return $this->response->show_404($this->view->make($this->config->get('app.404','modules/404')));
             }
+
+            if( !isset($this->controller_array[$this->route_index]) ) {
+                return $this->response->show_404($this->view->make($this->config->get('app.404','modules/404')));
+            }
+
+            $this->controller = $this->controller_array[$this->route_index];
+            $this->route_index++;
+
+            array_push($this->controller['params'], function() {
+                $this->dispatch();
+            });
             
             if( $this->controller['is_closure'] ) {
                 //instead of calling the closure directly we use call_user_func_array so we can
                 //pass captured variables if any to the closure
+                array_unshift($this->controller['params'], $this);
                 $response = call_user_func_array( $this->controller['closure'], $this->controller['params']);
             }
             else {
@@ -176,55 +200,39 @@ class App {
                     show_error('Class app\\controllers\\'. $this->controller['controller'].' does not exists',true);
                 }
                 
-                global $controller_instance;
-                $controller_instance = new $controller;
+                $controller_instance = new $controller($this);
                 
                 if( !method_exists( $controller_instance, $this->controller['method'] ) ) {
                     show_error('Controller method doesn\'t exists',true);
                 }
                 
-                /* call the controller method with passed arguments and capture returned response */
-                $response = call_user_func_array( array( $controller_instance, $this->controller['method']), $this->controller['params'] );
-                            
+                // call the controller method with passed arguments and capture returned response
+                $response = call_user_func_array(
+                    array( $controller_instance, $this->controller['method']),
+                    $this->controller['params']
+                );
+                
+                unset($controller_instance);
             }
             
-            /* Now handle the response */
-            if( $response instanceof Request_Handler ) {
-                /* If request_handler object then we check if this is a redirect */
-                if( $response->redirect_to )
-                $response->redirect_header();
-            }
-            elseif( $response instanceof View_Handler ) {
-                if( $response->is_json() ) {
-                    $response->output_json();
-                }
-                else
-                /* For view object we echo the generated markup */
-                echo $response->get_markup();
-            }
-            elseif( is_string($response) ) {
-                echo $response;
-            }        
-            
-            if( Config::get('app.db_profiler') == true ) {
-                $profiler_array = [];
-                foreach( DB::get_active_connections() as $db_obj ) {
-                    $query_array = $db_obj->sel("show profiles",[]);
-                    foreach($query_array as $row) {
-                        //$profiler_array[] = ['Query'=>$row->Query, 'Duration'=>$row->Duration];
-                        $profiler_array[] = "<b>Query:</b> ".$row->Query."<br/><b>Duration:</b> ".$row->Duration;
-                    }
-                }
-                echo implode("<br/><hr/>", $profiler_array);
+            // Now handle the response
+            if($response) {
+                $this->response->handle($response);
             }
         }
         catch( Pa_Exception $e ) {
-            echo $e->errorMessage();
-            die;
+            error_log($e->errorMessage());
+            $this->response->handle($e->errorMessage());
+        }
+        catch( \Exception $e ) {
+            error_log($e->getMessage());
+            $this->response->handle($e->getMessage());
         }
     }
     
-    public static function get_instance() {
+    public static function get_instance($new = false) {
+        if ($new) return new App();
+
         if( !isset(self::$instance) ) self::$instance = new App();
         return self::$instance;
     }
