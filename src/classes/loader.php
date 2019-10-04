@@ -1,5 +1,5 @@
 <?php
-namespace core\classes;
+namespace phpasap\classes;
 
 trait Loader {
     // these are the properties to be lazy loaded from app

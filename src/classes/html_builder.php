@@ -31,12 +31,7 @@
  * @link	    https://phpasap.com
  */
 
-namespace core\classes;
-
-//use core\alias\Route;
-
-//Deny direct access
-if( !defined('ROOT') ) exit('Cheatin\' huh');
+namespace phpasap\classes;
 
 class Html_Builder {
     use Loader;

@@ -31,7 +31,7 @@
  * @author Brent R. Matzelle (original founder)
  */
 
-namespace core\classes;
+namespace phpasap\classes;
  
 class Php_Mailer
 {

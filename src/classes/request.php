@@ -1,5 +1,5 @@
 <?php
-namespace core\classes;
+namespace phpasap\classes;
 
 interface Request {
     /*

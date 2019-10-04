@@ -31,13 +31,7 @@
  * @link	    https://phpasap.com
  */
 
-namespace core\classes;
-
-// use core\alias\Route;
-// use core\alias\Session;
-
-//Deny direct access
-if( !defined('ROOT') ) exit('Cheatin\' huh');
+namespace phpasap\classes;
 
 class Request_Handler implements Request {
     use Loader;

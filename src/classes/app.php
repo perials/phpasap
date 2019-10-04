@@ -41,13 +41,6 @@
 
 namespace phpasap\classes;
 
-// use core\alias\Config;
-// use core\alias\Route;
-// use core\alias\View;
-
-//Deny direct access
-if( !defined('ROOT') ) exit('Cheatin\' huh');
-
 class App {
     
     /**

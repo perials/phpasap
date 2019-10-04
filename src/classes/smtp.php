@@ -31,7 +31,7 @@
  * @author Marcus Bointon <phpmailer@synchromedia.co.uk>
  */
 
-namespace core\classes;
+namespace phpasap\classes;
  
 class SMTP
 {
