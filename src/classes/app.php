@@ -39,7 +39,7 @@
  * @link	    https://phpasap.com
  */
 
-namespace core\classes;
+namespace phpasap\classes;
 
 // use core\alias\Config;
 // use core\alias\Route;
