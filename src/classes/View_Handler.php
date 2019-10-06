@@ -34,7 +34,9 @@
 namespace phpasap\classes;
 
 class View_Handler {
-    use Loader;
+    // use Loader;
+
+    private static $ROOT;
     
     public function __construct(&$app = NULL) {
         $this->app = $app ? $app : App::get_instance();
@@ -115,7 +117,16 @@ class View_Handler {
      * @return string
      */
     public function get_file_path($file_name='') {
-        return ROOT . DS . 'app' . DS . 'views' . DS . $file_name . '.php';
+        return $this->get_view_root() . DS . $file_name . '.php';
+        // return ROOT . DS . 'app' . DS . 'views' . DS . $file_name . '.php';
+    }
+
+    public static function get_view_root() {
+        return self::$ROOT;
+    }
+
+    public static function set_view_root($path) {
+        self::$ROOT = $path;
     }
     
     public function get_markup() {

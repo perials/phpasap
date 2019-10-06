@@ -48,22 +48,89 @@ class App {
      */
     private static $instance = null;
 
+    private static $aliases = [];
+
+    private static $components = [];
+
     private $route_index = 0; // current middleware index to run
     
     public static $lazy_load_properties = [];
     public static $route_array = [];
     
     public function __construct() {
-        // Conditionally sets debug mode 
-        $this->debug_mode();
-        
         // Save version of PHP 
         $this->php_version = $this->get_php_version();
+
+        $this->set_aliases();
+        $this->register_alias_auto_loader();
+
+        $this->set_components();
+        $this->register_components();
         
-        // Start the session. Session is required by our core Form_Handler class
-        // $this->session->start_session();
+        // $this->set_error_handler();
+
+        // Conditionally sets debug mode 
+        $this->debug_mode();
+    }
+
+    public function set_components() {
+        self::add_component('request', Request_Handler::class);
+        self::add_component('route', Route_Handler::class);
+        self::add_component('response', Response_Handler::class);
+    }
+
+    public static function add_component($prop, $class_name) {
+        self::$components[] = [$prop, $class_name];
+    }
+
+    public function register_components() {
+        foreach(self::$components as $component_array) {
+            App::register($component_array[0], function(&$app) use ($component_array) {
+                return new $component_array[1]($app);
+            });    
+        }
+    }
+
+    public function set_aliases() {
+        self::add_alias('Config', \phpasap\alias\Config::class);
+        self::add_alias('DB', \phpasap\alias\DB::class);
+        self::add_alias('Form', \phpasap\alias\Form::class);
+        self::add_alias('Html', \phpasap\alias\Html::class);
+        self::add_alias('Session', \phpasap\alias\Session::class);
+        self::add_alias('Validator', \phpasap\alias\Validator::class);
+        self::add_alias('Route', \phpasap\alias\Route::class);
+    }
+
+    public static function get_aliases() {
+        return self::$aliases;
+    }
+
+    public static function add_alias($alias, $class_name) {
+        self::$aliases[$alias] = $class_name;
+    }
+
+    public function alias_auto_loader($class_name) {
+        $namespaced_dir_array = explode(DS, str_replace(['/','\\'], DS, $class_name));
+
+        $alias = end($namespaced_dir_array);
+        if (!array_key_exists($alias, self::get_aliases())) {
+            return;
+        }
         
-        $this->set_error_handler();
+        $original_class_name = self::get_aliases()[$alias];
+
+        class_alias($original_class_name, $class_name);
+        // if( is_readable( strtolower(str_replace(["/","\\"], DS, ROOT . DS . $class_name).'.php') ) ) {
+        //     require strtolower(str_replace(["/","\\"], DS, $class_name).'.php');
+        // }
+    }
+
+    public function register_alias_auto_loader() {
+        spl_autoload_register([$this, 'alias_auto_loader']);
+    }
+
+    public static function set_view_root($dir_path) {
+        View_Handler::set_view_root($dir_path);
     }
     
     public static function register($key, $closure_callback) {
@@ -107,7 +174,7 @@ class App {
     private function debug_mode() {
         
         //Check if debug variable set in app.php config file
-        if( $this->config->get('app.debug') === true ) {
+        if( Config::get('app.debug') === true ) {
             //Set error reporting to true
             error_reporting(E_ALL);
             ini_set('display_errors', 1);            
@@ -132,6 +199,11 @@ class App {
 
     public static function get($url, $callback) {
         self::$route_array[] = ['GET', $url, $callback];
+        // $this->route->add('GET', $url, $callback);
+    }
+
+    public static function post($url, $callback) {
+        self::$route_array[] = ['POST', $url, $callback];
         // $this->route->add('GET', $url, $callback);
     }
 
@@ -175,34 +247,46 @@ class App {
             $this->controller = $this->controller_array[$this->route_index];
             $this->route_index++;
 
-            array_push($this->controller['params'], function() {
+            //array_push($this->controller['params'], function() {
+            //    $this->dispatch();
+            //});
+            $this->request->params = $this->controller['params'];
+            $callback = [$this->request, $this->response, function() {
                 $this->dispatch();
-            });
+            }];
             
             if( $this->controller['is_closure'] ) {
                 //instead of calling the closure directly we use call_user_func_array so we can
                 //pass captured variables if any to the closure
-                array_unshift($this->controller['params'], $this);
-                $response = call_user_func_array( $this->controller['closure'], $this->controller['params']);
+                // array_unshift($this->controller['params'], $this);
+                //$response = call_user_func_array( $this->controller['closure'], $this->controller['params']);
+                $response = call_user_func_array( $this->controller['closure'], $callback);
             }
             else {
-                
-                $controller = "app\\controllers\\".$this->controller['controller'];
+                // $controller = "app\\controllers\\".$this->controller['controller'];
+                $controller = $this->controller['controller'];
                             
                 if( !class_exists($controller) ) {
+                    echo "Not exist $controller";
                     show_error('Class app\\controllers\\'. $this->controller['controller'].' does not exists',true);
                 }
                 
-                $controller_instance = new $controller($this);
+                //$controller_instance = new $controller($this);
+                $controller_instance = new $controller();
                 
                 if( !method_exists( $controller_instance, $this->controller['method'] ) ) {
                     show_error('Controller method doesn\'t exists',true);
                 }
                 
                 // call the controller method with passed arguments and capture returned response
+                //$response = call_user_func_array(
+                //    array( $controller_instance, $this->controller['method']),
+                //    $this->controller['params']
+                //);
+                // call the controller method with passed arguments and capture returned response
                 $response = call_user_func_array(
                     array( $controller_instance, $this->controller['method']),
-                    $this->controller['params']
+                    $callback
                 );
                 
                 unset($controller_instance);

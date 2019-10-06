@@ -42,8 +42,8 @@ class Form_Builder {
     
     public function input($name=null, $default=null, $attr_assoc_array=array()) {
         if($default===null) {
-            if( $this->session->get($name) )
-            $default = $this->session->get($name);
+            if( Session::get($name) )
+            $default = Session::get($name);
         }
         $attributes_to_append = '';
         foreach($attr_assoc_array as $key=>$value) {
@@ -54,8 +54,8 @@ class Form_Builder {
     
     public function date($name=null, $default=null, $attr_assoc_array=array()) {
         if($default===null) {
-            if( $this->session->get($name) )
-            $default = $this->session->get($name);
+            if( Session::get($name) )
+            $default = Session::get($name);
         }
         $attributes_to_append = '';
         foreach($attr_assoc_array as $key=>$value) {
@@ -74,8 +74,8 @@ class Form_Builder {
     
     public function textarea($name=null,$default=null,$attr_assoc_array=array()) {
         if($default===null) {
-            if( $this->session->get($name) )
-            $default = $this->session->get($name);
+            if( Session::get($name) )
+            $default = Session::get($name);
         }
         $attributes_to_append = '';
         foreach($attr_assoc_array as $key=>$value) {
@@ -86,8 +86,8 @@ class Form_Builder {
     
     public function select( $name=null, $options, $default=null, $attr_assoc_array=array() ) {
         if($default===null) {
-            if( $this->session->get($name) )
-            $default = $this->session->get($name);
+            if( Session::get($name) )
+            $default = Session::get($name);
         }
         $attributes_to_append = '';
         foreach($attr_assoc_array as $key=>$value) {

@@ -31,11 +31,11 @@
  * @link	    https://phpasap.com
  */
 
-namespace core\alias;
+namespace phpasap\alias;
 
-use core\classes\Alias_Loader;
+use phpasap\classes\Alias_Loader;
 
 class Request extends Alias_Loader {
     protected static $key = 'request';
-    protected static $class_to_alias = '\core\classes\Request_Handler';
+    protected static $class_to_alias = '\phpasap\classes\Request_Handler';
 }

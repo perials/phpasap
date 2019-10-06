@@ -34,7 +34,7 @@
 namespace phpasap\classes;
 
 class Request_Handler implements Request {
-    use Loader;
+    // use Loader;
 
     public function __construct(&$app = NULL) {
         $this->app = $app ? $app : App::get_instance();
@@ -114,6 +114,7 @@ class Request_Handler implements Request {
      * @return mixed if $hard_redirect then void
      *                  if not $hard_redirect then current object
      */
+    /*
     public function redirect_to($url,$hard_redirect=false) {
         if( strpos($url, "http://") === 0 || strpos($url, "https://") === 0 ) {
             $this->redirect_to = $url;
@@ -142,6 +143,7 @@ class Request_Handler implements Request {
         $this->session->flash($this->all());
         return $this;
     }
+    */
     
     /**
      * check if given url is same as current url

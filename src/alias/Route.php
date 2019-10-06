@@ -35,7 +35,7 @@ namespace phpasap\alias;
 
 use phpasap\classes\Alias_Loader;
 
-class View extends Alias_Loader {
-    protected static $key = 'view';
-    protected static $class_to_alias = '\phpasap\classes\View_Handler';
+class Route extends Alias_Loader {
+    protected static $key = 'route';
+    protected static $class_to_alias = '\phpasap\classes\Route_Handler';
 }

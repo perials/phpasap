@@ -104,8 +104,8 @@ class Route_Handler {
 	 * @return string
 	 */
 	public function base_url() {
-		if ($this->config->get('app.swoole_server') && $this->config->get('app.swoole_base_url')) {
-			return $this->config->get('app.swoole_base_url');
+		if (Config::get('app.swoole_server') && Config::get('app.swoole_base_url')) {
+			return Config::get('app.swoole_base_url');
 		}
 
 		$protocol = "http";
@@ -205,7 +205,9 @@ class Route_Handler {
 	
 	public function get_route_callback($route_array,$variables) {
 		$return_route_match_array = array();
-		if( is_callable($route_array[2]) ) { //check if third param is function
+		if( $route_array[2] instanceof \Closure ) { //check if third param is function
+			echo "== is cluseure ==";
+			print_r($route_array);
 			$return_route_match_array['is_closure'] = true;
 			$return_route_match_array['closure'] = $route_array[2];
 			$return_route_match_array['params'] = $variables;
@@ -222,7 +224,8 @@ class Route_Handler {
 				$return_route_match_array['params'] = empty( $variables ) ? [] : $variables;
 			}
 			else {
-				$controller_method = explode('@',$route_array[2]);
+				// $controller_method = explode('@',$route_array[2]);
+				$controller_method = $route_array[2];
 				$return_route_match_array['controller'] = $controller_method[0];
 				$return_route_match_array['method'] = $controller_method[1];
 				$return_route_match_array['params'] = $variables;	
