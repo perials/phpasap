@@ -33,13 +33,15 @@
 
 namespace phpasap\classes;
 
-use phpasap\alias\Request;
-
 class Response_Handler extends View_Handler {
     // use Loader;
 
     public function __construct(&$app = NULL) {
         $this->app = $app ? $app : App::get_instance();
+    }
+
+    public function get_app() {
+        return $this->app;
     }
     
     public function handle($response) {
@@ -60,7 +62,7 @@ class Response_Handler extends View_Handler {
         }
         */
         if( is_object($response) && get_class($response) === get_class($this) ) {
-            if( $response->redirect_to ) {
+            if( !empty($response->redirect_to) ) {
                 $response->redirect_header();
             }
             elseif( $response->is_json() ) {
@@ -96,7 +98,7 @@ class Response_Handler extends View_Handler {
             $this->redirect_to = $url;
         }
         else
-            $this->redirect_to = Route::base_url().'/'.rtrim($url, '/');
+            $this->redirect_to = Request::base_url().'/'.rtrim($url, '/');
         if( $hard_redirect === true ) {
             $this->redirect_header();    
         }

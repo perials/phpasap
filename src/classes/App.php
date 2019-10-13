@@ -71,6 +71,12 @@ class App {
 
         // Conditionally sets debug mode 
         $this->debug_mode();
+
+        // FIXME - This should be called only if Session class is used
+        // if Session has not started then start it
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
     }
 
     public function set_components() {
@@ -80,6 +86,7 @@ class App {
     }
 
     public static function add_component($prop, $class_name) {
+        if (isset(self::$lazy_load_properties[$prop])) return;
         self::$components[] = [$prop, $class_name];
     }
 
@@ -131,6 +138,10 @@ class App {
 
     public static function set_view_root($dir_path) {
         View_Handler::set_view_root($dir_path);
+    }
+
+    public static function set_config_dir_path($dir_path) {
+        Config_Loader::set_config_dir_path($dir_path);
     }
     
     public static function register($key, $closure_callback) {
@@ -237,11 +248,11 @@ class App {
     public function dispatch() {
         try {
             if( empty($this->controller_array) ) {
-                return $this->response->show_404($this->view->make($this->config->get('app.404','modules/404')));
+                return $this->response->show_404($this->response->make(Config::get('app.404','modules/404')));
             }
 
             if( !isset($this->controller_array[$this->route_index]) ) {
-                return $this->response->show_404($this->view->make($this->config->get('app.404','modules/404')));
+                return $this->response->show_404($this->response->make(Config::get('app.404','modules/404')));
             }
 
             $this->controller = $this->controller_array[$this->route_index];
@@ -267,15 +278,14 @@ class App {
                 $controller = $this->controller['controller'];
                             
                 if( !class_exists($controller) ) {
-                    echo "Not exist $controller";
-                    show_error('Class app\\controllers\\'. $this->controller['controller'].' does not exists',true);
+                    throw new \Exception('Class app\\controllers\\'. $this->controller['controller'].' does not exists');
                 }
                 
                 //$controller_instance = new $controller($this);
                 $controller_instance = new $controller();
                 
                 if( !method_exists( $controller_instance, $this->controller['method'] ) ) {
-                    show_error('Controller method doesn\'t exists',true);
+                    throw new \Exception('Controller method doesn\'t exists');
                 }
                 
                 // call the controller method with passed arguments and capture returned response

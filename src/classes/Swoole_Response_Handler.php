@@ -33,35 +33,38 @@
 
 namespace phpasap\classes;
 
-class Swoole_Response_Handler {
-    use Loader;
+class Swoole_Response_Handler extends Response_Handler {
 
     public function __construct(&$app = NULL) {
         $this->app = $app ? $app : App::get_instance();
     }
     
     public function handle($response) {
-        if( $response && (get_class($response) === get_class($this->request)) ) {
+        if( $response && is_object($response) && (get_class($response) === get_class($this)) ) {
             /* If request_handler object then we check if this is a redirect */
-            if( $response->redirect_to )
-            $response->redirect_header();
-        }
-        elseif( $response && (get_class($response) === get_class($this->view)) ) {
-            if( $response->is_json() ) {
+            if( $response->redirect_to ) {
+                $response->redirect_header();
+            }
+            elseif ($response->is_json() ) {
                 $response->output_json();
             }
-            else
-            /* For view object we echo the generated markup */
-            // echo $response->get_markup();
-            $this->render_html($response->get_markup());
+            else {
+                /* For view object we echo the generated markup */
+                // echo $response->get_markup();
+                $this->render_html($response->get_markup());
+            }
         }
         elseif( is_string($response) ) {
             // echo $response;
             $this->render_html($response);
         }
         else {
-            echo "Unknown type" . gettype($response);
+            throw new \Exception("Unknown type " . gettype($response));
         }
+    }
+
+    public function redirect_header() {
+        $this->app->swoole_response->redirect($this->redirect_to);
     }
 
     public function render_html($html) {

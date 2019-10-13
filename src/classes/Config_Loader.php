@@ -36,16 +36,30 @@ namespace phpasap\classes;
 class Config_Loader {
     
     private $params = array();
+    private static $config_dir_path = null;
     
     public function __construct() {
         $this->load();
+    }
+    
+    public static function get_config_dir_path() {
+        return self::$config_dir_path;
+    }
+    
+    public static function set_config_dir_path($path) {
+        self::$config_dir_path = rtrim($path, DIRECTORY_SEPARATOR);
     }
     
     /**
      * load all config parameter in params property
      */
     protected function load() {
-        //$config_files = ROOT . DS . 'core' . DS . 'config' . DS . '*.php';
+        $config_dir_path = $this->get_config_dir_path();
+        
+        if (!$config_dir_path) {
+            throw new \Exception("Config directory path not set");
+        }
+        
         $config_files = ROOT . DS . 'app' . DS . 'config' . DS . '*.php';
         foreach(glob($config_files) as $file) {
             $this->params[basename($file, ".php")] = require $file;

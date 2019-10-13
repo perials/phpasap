@@ -33,8 +33,20 @@
 
 namespace phpasap\classes;
 
-class Request_Handler implements Request {
-    // use Loader;
+class Request_Handler extends Request {
+    private $request_uri = '';
+	private $routes_array = array();
+	
+	/**
+	 * get url of current page
+	 *
+	 * @return string
+	 */
+	public function get_current_url() {
+		//note that we haven't added a backslash after base_url since get_request_uri has
+		//a backslash prepended to it
+		return self::base_url().$this->get_request_uri();
+	}
 
     public function __construct(&$app = NULL) {
         $this->app = $app ? $app : App::get_instance();
@@ -101,49 +113,8 @@ class Request_Handler implements Request {
      * FIXME deprecate this as this is already there in HTML::url_to()
      */
     public function url_to($url) {
-        return $this->base_url().'/'.rtrim($url, '/');
+        return self::base_url().'/'.rtrim($url, '/');
     }
-    
-    /**
-     * set the redirect_to property
-     *
-     * @param string $url relative url
-     * @param boolean $hard_redirect if false then Request handler object is returned
-     *                  if true then Location header is set and script is terminated
-     *
-     * @return mixed if $hard_redirect then void
-     *                  if not $hard_redirect then current object
-     */
-    /*
-    public function redirect_to($url,$hard_redirect=false) {
-        if( strpos($url, "http://") === 0 || strpos($url, "https://") === 0 ) {
-            $this->redirect_to = $url;
-        }
-        else
-            $this->redirect_to = $this->route->base_url().'/'.rtrim($url, '/');
-        if( $hard_redirect === true ) {
-            $this->redirect_header();    
-        }
-        else {
-            return $this;
-        }
-    }
-    
-    public function redirect_header() {
-        header('Location: '.$this->redirect_to);
-        die;
-    }
-    
-    public function with($flash_data_array) {
-        $this->session->flash($flash_data_array);
-        return $this;
-    }
-    
-    public function with_inputs() {
-        $this->session->flash($this->all());
-        return $this;
-    }
-    */
     
     /**
      * check if given url is same as current url
@@ -163,4 +134,44 @@ class Request_Handler implements Request {
         return $_SERVER['REQUEST_METHOD'];
     }
     
+    /**
+	 * Returns base path of current url
+	 * Eg for http://some-domain.com/folder-1/folder-2/index.php will give /folder-1/folder-2
+	 * for http://localhost/phpasap/index.php/docs/routes will return phpasap/ (project root is www/phpasap and web root is www)
+	 * for http://localhost/phpasap/docs/routes will return phpasap/ (project root is www/phpasap and web root is www)
+	 */
+	public function get_base_path() {
+		// return $this->base_path = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
+		return implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
+	}
+
+	public function get_server_request_uri() {
+		return $_SERVER['REQUEST_URI'];
+	}
+    
+    /**
+	 * The following function will strip the script name from URL i.e.  http://www.something.com/search/book/fitzgerald will become /search/book/fitzgerald
+	 * http://localhost/phpasapraw/docs/routes will return /docs/routes (project root is www/phpasap and web root is www)
+	 */
+	public function get_request_uri() {
+		$uri = substr($this->get_server_request_uri(), strlen($this->get_base_path()));
+		if (strstr($uri, '?')) $uri = substr($uri, 0, strpos($uri, '?'));
+		return $this->request_uri = '/' . trim($uri, '/');
+		//return $this->request_uri = trim($uri, '/');
+	}
+	
+	/**
+	 * returns request_uri in array
+	 * http://www.something.com/search/book/java will return array(0=>search,1=>book,2=>java)
+	 */
+	public function get_request_uri_array() {
+		$base_url = $this->get_request_uri();
+		$request_uri_array = array();
+		$array = explode('/', $base_url);
+		foreach( $array as $route ) {
+			if(trim($route) != '')
+				array_push($request_uri_array, $route);
+		}
+		return $request_uri_array;
+	}    
 }

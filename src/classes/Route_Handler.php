@@ -34,91 +34,14 @@
 namespace phpasap\classes;
 
 class Route_Handler {
-	use Loader;
 
 	public function __construct(&$app = NULL) {
         $this->app = $app ? $app : App::get_instance();
-    }
-    
-    // private $base_path = '';
-	private $request_uri = '';
-	private $routes_array = array();
-	
-	/**
-	 * Returns base path of current url
-	 * Eg for http://some-domain.com/folder-1/folder-2/index.php will give /folder-1/folder-2
-	 * for http://localhost/phpasap/index.php/docs/routes will return phpasap/ (project root is www/phpasap and web root is www)
-	 * for http://localhost/phpasap/docs/routes will return phpasap/ (project root is www/phpasap and web root is www)
-	 */
-	public function get_base_path() {
-		// return $this->base_path = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
-		return implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
-	}
-
-	public function get_server_request_uri() {
-		return $_SERVER['REQUEST_URI'];
-	}
-    
-    /**
-	 * The following function will strip the script name from URL i.e.  http://www.something.com/search/book/fitzgerald will become /search/book/fitzgerald
-	 * http://localhost/phpasapraw/docs/routes will return /docs/routes (project root is www/phpasap and web root is www)
-	 */
-	public function get_request_uri() {
-		$uri = substr($this->get_server_request_uri(), strlen($this->get_base_path()));
-		if (strstr($uri, '?')) $uri = substr($uri, 0, strpos($uri, '?'));
-		return $this->request_uri = '/' . trim($uri, '/');
-		//return $this->request_uri = trim($uri, '/');
 	}
 	
-	/**
-	 * returns request_uri in array
-	 * http://www.something.com/search/book/java will return array(0=>search,1=>book,2=>java)
-	 */
-	public function get_request_uri_array() {
-		$base_url = $this->get_request_uri();
-		$request_uri_array = array();
-		$array = explode('/', $base_url);
-		foreach( $array as $route ) {
-			if(trim($route) != '')
-				array_push($request_uri_array, $route);
-		}
-		return $request_uri_array;
+	public function get_request() {
+		return $this->app->request;
 	}
-	
-	/**
-	 * get url of current page
-	 *
-	 * @return string
-	 */
-	public function get_current_url() {
-		//note that we haven't added a backslash after base_url since get_request_uri has
-		//a backslash prepended to it
-		return $this->base_url().$this->get_request_uri();
-	}
-	
-	/**
-	 * get base url for current app
-	 *
-	 * Will work even if installed in sub folder or as subdomain
-	 *
-	 * @return string
-	 */
-	public function base_url() {
-		if (Config::get('app.swoole_server') && Config::get('app.swoole_base_url')) {
-			return Config::get('app.swoole_base_url');
-		}
-
-		$protocol = "http";
-		if( isset($_SERVER['HTTPS'] ) ) {
-			$protocol = "https";
-		}
-
-		$port = "";
-		if ($_SERVER["SERVER_PORT"] !== 80) {
-			$port = ":" . $_SERVER["SERVER_PORT"];
-		}
-        return $protocol.'://'.$_SERVER['SERVER_NAME'].$port.implode('/',array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1));
-    }
     
 	/**
 	 * adds given route rule to rotues array
@@ -140,13 +63,13 @@ class Route_Handler {
 	
 	public function dispatch() {
 		$route_callback_array = []; // This will hold list of matching routes
-		$request_uri_array = $this->get_request_uri_array();
+		$request_uri_array = $this->get_request()->get_request_uri_array();
 		foreach( $this->routes_array as $route_array ) {
 			
-			$current_request_uri = $this->get_request_uri();
+			$current_request_uri = $this->get_request()->get_request_uri();
 			
 			/* Check if HTTP verb matches current request */
-			if( $route_array[0] != 'CONTROLLER' && $route_array[0] != 'ANY' && $this->request->method() != $route_array[0] )
+			if( $route_array[0] != 'CONTROLLER' && $route_array[0] != 'ANY' && $this->get_request()->method() != $route_array[0] )
 			continue;
 
 			// handle global middlewares; app.use case
@@ -200,14 +123,11 @@ class Route_Handler {
 			
 		}
 		return $route_callback_array;
-		// return [];
 	}
 	
 	public function get_route_callback($route_array,$variables) {
 		$return_route_match_array = array();
 		if( $route_array[2] instanceof \Closure ) { //check if third param is function
-			echo "== is cluseure ==";
-			print_r($route_array);
 			$return_route_match_array['is_closure'] = true;
 			$return_route_match_array['closure'] = $route_array[2];
 			$return_route_match_array['params'] = $variables;
@@ -229,7 +149,7 @@ class Route_Handler {
 				$return_route_match_array['controller'] = $controller_method[0];
 				$return_route_match_array['method'] = $controller_method[1];
 				$return_route_match_array['params'] = $variables;	
-			}			
+			}
 		}
 		return $return_route_match_array;
 	}

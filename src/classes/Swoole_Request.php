@@ -33,8 +33,7 @@
 
 namespace phpasap\classes;
 
-class Swoole_Request implements Request {
-    use Loader;
+class Swoole_Request extends Request {
 
     public function __construct(&$app = NULL) {
         $this->app = $app ? $app : App::get_instance();
@@ -101,7 +100,7 @@ class Swoole_Request implements Request {
      * FIXME deprecate this as this is already there in HTML::url_to()
      */
     public function url_to($url) {
-        return $this->route->base_url().'/'.rtrim($url, '/');
+        return self::base_url().'/'.rtrim($url, '/');
     }
     
     /**
@@ -119,7 +118,7 @@ class Swoole_Request implements Request {
             $this->redirect_to = $url;
         }
         else
-            $this->redirect_to = $this->route->base_url().'/'.rtrim($url, '/');
+            $this->redirect_to = self::base_url().'/'.rtrim($url, '/');
         if( $hard_redirect === true ) {
             $this->redirect_header();    
         }
@@ -160,4 +159,44 @@ class Swoole_Request implements Request {
         return $this->app->swoole_request->server['request_method'];
     }
     
+    /**
+	 * Returns base path of current url
+	 * Eg for http://some-domain.com/folder-1/folder-2/index.php will give /folder-1/folder-2
+	 * for http://localhost/phpasap/index.php/docs/routes will return phpasap/ (project root is www/phpasap and web root is www)
+	 * for http://localhost/phpasap/docs/routes will return phpasap/ (project root is www/phpasap and web root is www)
+	 */
+	public function get_base_path() {
+		// return $this->base_path = implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
+		return implode('/', array_slice(explode('/', $_SERVER['SCRIPT_NAME']), 0, -1)) . '/';
+	}
+
+	public function get_server_request_uri() {
+		return $this->app->swoole_request->server['request_uri'];
+	}
+    
+    /**
+	 * The following function will strip the script name from URL i.e.  http://www.something.com/search/book/fitzgerald will become /search/book/fitzgerald
+	 * http://localhost/phpasapraw/docs/routes will return /docs/routes (project root is www/phpasap and web root is www)
+	 */
+	public function get_request_uri() {
+		$uri = substr($this->get_server_request_uri(), strlen($this->get_base_path()));
+		if (strstr($uri, '?')) $uri = substr($uri, 0, strpos($uri, '?'));
+		return $this->request_uri = '/' . trim($uri, '/');
+		//return $this->request_uri = trim($uri, '/');
+	}
+	
+	/**
+	 * returns request_uri in array
+	 * http://www.something.com/search/book/java will return array(0=>search,1=>book,2=>java)
+	 */
+	public function get_request_uri_array() {
+		$base_url = $this->get_request_uri();
+		$request_uri_array = array();
+		$array = explode('/', $base_url);
+		foreach( $array as $route ) {
+			if(trim($route) != '')
+				array_push($request_uri_array, $route);
+		}
+		return $request_uri_array;
+	}
 }

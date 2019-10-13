@@ -86,7 +86,7 @@ class View_Handler {
         $file = $this->get_file_path($file_name);
         
         if( !file_exists($file) )
-        show_error('View file '.$file_name.' not found at '.$file, true);
+        throw new \Exception('View file '.$file_name.' not found at '.$file);
         
         extract($params_array);
         ob_start();
